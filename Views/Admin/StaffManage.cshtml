@@ -1,5 +1,144 @@
 @{
-    Layout = "~/Views/Shared/Layout/_AdminLayout.cshtml";
+    Layout = "~/Views/Shared/layout/_AdminLayout.cshtml";
+    ViewData["Title"] = "Staff Management";
 }
 
-อันนี้เป็นหน้าจัดการพนักงานสำหรับผู้ดูแลระบบ (Admin) ซึ่งจะแสดงรายการพนักงานทั้งหมดในระบบ โดยจะมีข้อมูลเช่น ชื่อ, ตำแหน่ง, แผนก และสถานะการทำงาน เพื่อให้ผู้ดูแลระบบสามารถจัดการพนักงานได้อย่างมีประสิทธิภาพ
+@model IEnumerable<SirinEngineering.Models.db.UserModel>
+    
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 style="color: #003D7C;">👥 จัดการข้อมูลพนักงาน</h2>
+        <button type="button" class="btn text-white" style="background: #003D7C;" data-bs-toggle="modal" data-bs-target="#addStaffModal">
+            + เพิ่มพนักงานใหม่
+        </button>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>ชื่อ-นามสกุล</th>
+                        <th>Username</th>
+                        <th>เบอร์โทรศัพท์</th>
+                        <th>บทบาท</th>
+                        <th class="text-center">จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.U_FullName</td>
+                            <td>@item.U_Username</td>
+                            <td>@item.U_Phone</td>
+                            <td>
+                                @if (item.U_RoleID == 1) { <span class="badge bg-primary">Admin</span> }
+                                else if (item.U_RoleID == 2) { <span class="badge bg-secondary">Staff</span> }
+                            </td>
+                            <td class="text-center">
+                                <button type="button" class="btn btn-sm btn-outline-warning" 
+                                        data-bs-toggle="modal" data-bs-target="#editModal-@item.U_UserID">
+                                    แก้ไข
+                                </button>
+
+                                <form asp-action="DeleteStaff" method="post" class="d-inline"
+                                      onsubmit="return confirm('คุณแน่ใจใช่หรือไม่ว่าต้องการลบพนักงานคนนี้?');">
+                                    <input type="hidden" name="id" value="@item.U_UserID" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">ลบ</button>
+                                </form>
+                            </td>
+                        </tr>
+
+                        <div class="modal fade" id="editModal-@item.U_UserID" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content text-start">
+                                    <form asp-action="EditStaff" method="post">
+                                        @* ส่ง UserID กลับไปที่ Controller *@
+                                        <input type="hidden" name="U_UserID" value="@item.U_UserID" />
+                                        
+                                        <div class="modal-header text-white" style="background: #7F7F7F;">
+                                            <h5 class="modal-title">แก้ไขข้อมูล: @item.U_FullName</h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="mb-3">
+                                                <label class="form-label">ชื่อ-นามสกุล</label>
+                                                <input name="U_FullName" value="@item.U_FullName" class="form-control" required />
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">บทบาท</label>
+                                                <select name="U_RoleID" class="form-select">
+                                                    <!option value="1" @(item.U_RoleID == 1 ? "selected" : "")>Admin</!option>
+                                                    <!option value="2" @(item.U_RoleID == 2 ? "selected" : "")>Staff</!option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Username</label>
+                                                <input name="U_Username" value="@item.U_Username" class="form-control" required />
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">เบอร์โทรศัพท์</label>
+                                                <input name="U_Phone" value="@item.U_Phone" class="form-control" />
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Password (เว้นว่างถ้าไม่เปลี่ยน)</label>
+                                                <input name="U_Password" type="password" class="form-control" placeholder="******" />
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+                                            <button type="submit" class="btn text-white" style="background: #003D7C;">บันทึกการแก้ไข</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addStaffModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="CreateStaff" method="post">
+                <div class="modal-header text-white" style="background: #003D7C;">
+                    <h5 class="modal-title">เพิ่มพนักงานใหม่</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">ชื่อ-นามสกุล</label>
+                        <input name="U_FullName" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">บทบาท</label>
+                        <select name="U_RoleID" class="form-select" required>
+                            <option value="1">Admin</option>
+                            <option value="2" selected>Staff</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input name="U_Username" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input name="U_Password" type="password" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">เบอร์โทรศัพท์</label>
+                        <input name="U_Phone" class="form-control" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="submit" class="btn text-white" style="background: #003D7C;">บันทึกข้อมูล</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
