@@ -1,0 +1,60 @@
+:root {
+    --sirin-blue: #003D7C; /* สีจากตัวอักษร SIRIN */
+    --sirin-grey: #7F7F7F; /* สีจากรูปเกียร์ */
+    --bg-light: #F5F5F5;
+}
+
+body {
+    margin: 0; font-family: sans-serif;
+    background: var(--bg-light);
+    display: flex; justify-content: center; align-items: center; min-height: 100vh;
+}
+
+.main-container {
+    display: flex; width: 900px; height: 550px;
+    background: #fff; border-radius: 15px; overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.side-logo {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    background: #fff; padding: 40px;
+}
+.side-logo img { width: 100%; max-width: 250px; }
+
+.side-form { flex: 1; background: #eee; padding: 40px; }
+
+/* Tab Logic */
+.tab-header {
+    display: flex; border: 2px solid var(--sirin-blue);
+    border-radius: 25px; margin-bottom: 30px; overflow: hidden;
+}
+.tab-item {
+    flex: 1; text-align: center; padding: 10px; cursor: pointer;
+    font-weight: bold; color: var(--sirin-blue); transition: 0.3s;
+}
+
+#tab-login:checked ~ .main-container .tab-item[for="tab-login"],
+#tab-register:checked ~ .main-container .tab-item[for="tab-register"] {
+    background: var(--sirin-blue); color: #fff;
+}
+
+.form-content { display: none; }
+#tab-login:checked ~ .main-container .login-form { display: block; }
+#tab-register:checked ~ .main-container .register-form { display: block; }
+
+/* Input Styles */
+.input-box { margin-bottom: 15px; }
+.input-box label { display: block; margin-bottom: 5px; color: var(--sirin-blue); font-weight: bold; }
+.input-box input {
+    width: 100%; padding: 12px; border: 1px solid #ccc;
+    border-radius: 8px; box-sizing: border-box;
+}
+
+.row-flex { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 0.9em; }
+
+/* Buttons */
+.btn-blue { width: 100%; padding: 12px; background: var(--sirin-blue); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 1.1em; }
+.btn-grey { width: 100%; padding: 12px; background: var(--sirin-grey); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 1.1em; }
+
+.error-msg { color: red; font-size: 0.85em; margin-bottom: 10px; }

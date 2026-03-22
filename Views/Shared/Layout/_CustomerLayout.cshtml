@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Sirin Engineering - Shop</title>
+    <style>
+        :root { --cust-blue: #003D7C; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #fff; }
+        header { border-bottom: 1px solid #ddd; padding: 15px 10%; display: flex; justify-content: space-between; align-items: center; }
+        .logo-box img { height: 50px; }
+        .nav-cust a { text-decoration: none; color: #333; margin-right: 30px; font-weight: 600; }
+        .nav-cust a:hover { color: var(--cust-blue); }
+        .cart-badge { background: var(--cust-blue); color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
+        .footer { background: #f9f9f9; padding: 40px 10%; margin-top: 50px; border-top: 1px solid #eee; text-align: center; color: #888; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-box">
+            <img src="~/images/Logo.jpg" />
+        </div>
+        <nav class="nav-cust">
+            <a asp-controller="Product" asp-action="Index">🏠 หน้าแรก</a>
+            <a asp-controller="Product" asp-action="ProductList">🛠️ สินค้าทั้งหมด</a>
+            <a asp-controller="Product" asp-action="Cart">🛒 ตะกร้า <span class="cart-badge">0</span></a>
+            <a asp-controller="Product" asp-action="MyOrders">📜 ประวัติสั่งซื้อ</a>
+            <a asp-controller="Account" asp-action="Login" style="color: var(--cust-blue);">Login / Register</a>
+        </nav>
+    </header>
+
+    <main style="padding: 20px 10%; min-height: 70vh;">
+        @RenderBody()
+    </main>
+
+    <div class="footer">
+        &copy; 2026 Sirin Engineering Co., Ltd. | Quality Tools for Professional Engineers
+    </div>
+</body>
+</html>

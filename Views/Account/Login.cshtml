@@ -1,0 +1,75 @@
+@model SirinEngineering.ViewModels.AccountViewModel
+@{ Layout = null; }
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Login & Register - Sirin Engineering</title>
+    <link rel="stylesheet" href="~/css/account.css" />
+</head>
+<body>
+    @* ส่วนควบคุมการสลับหน้าด้วย CSS *@
+    <input type="radio" name="tab-control" id="tab-login" @(Model.ActiveTab == "login" ? "checked" : "") style="display:none;"/>
+    <input type="radio" name="tab-control" id="tab-register" @(Model.ActiveTab == "register" ? "checked" : "") style="display:none;"/>
+
+    <div class="main-container">
+        @* ฝั่งโลโก้ *@
+        <div class="side-logo">
+            <img src="~/images/Logo.jpg" alt="Sirin Logo" />
+        </div>
+
+        @* ฝั่งฟอร์ม *@
+        <div class="side-form">
+            <div class="tab-header">
+                <label for="tab-login" class="tab-item">Login</label>
+                <label for="tab-register" class="tab-item">Register</label>
+            </div>
+
+            @* --- ฟอร์ม Login --- *@
+            <div class="form-content login-form">
+                <form asp-action="Login" method="post">
+                    <div asp-validation-summary="ModelOnly" class="error-msg"></div>
+                    <div class="input-box">
+                        <label>Username</label>
+                        <input asp-for="Login.Username" type="text" placeholder="Username" required />
+                    </div>
+                    <div class="input-box">
+                        <label>Password</label>
+                        <input asp-for="Login.Password" type="password" placeholder="Password" required />
+                    </div>
+                    <div class="row-flex">
+                        <label><input asp-for="Login.RememberMe" type="checkbox" /> Remember me</label>
+                        <a href="#">Forgot password?</a>
+                    </div>
+                    <button type="submit" class="btn-blue">Login</button>
+                </form>
+            </div>
+
+            @* --- ฟอร์ม Register --- *@
+            <div class="form-content register-form">
+                <form asp-action="Register" method="post">
+                    <div asp-validation-summary="All" class="error-msg"></div>
+                    <div class="input-box">
+                        <label>Full Name</label>
+                        <input asp-for="Register.FullName" type="text" placeholder="Full name" required />
+                    </div>
+                    <div class="input-box">
+                        <label>Username</label>
+                        <input asp-for="Register.Username" type="text" placeholder="Username" required />
+                    </div>
+                    <div class="input-box">
+                        <label>Password</label>
+                        <input asp-for="Register.Password" type="password" placeholder="Password" required />
+                    </div>
+                    <div class="input-box">
+                        <label>Tel.</label>
+                        <input asp-for="Register.Tel" type="text" placeholder="Tel." required />
+                    </div>
+                    <button type="submit" class="btn-grey">Sign Up</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

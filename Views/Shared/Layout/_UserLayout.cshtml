@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Staff - Sirin Engineering</title>
+    <style>
+        :root { --staff-grey: #7F7F7F; --staff-blue: #003D7C; }
+        body { margin: 0; font-family: sans-serif; background: #eee; }
+        .navbar { background: var(--staff-grey); padding: 10px 50px; display: flex; align-items: center; justify-content: space-between; color: white; }
+        .nav-links a { color: white; text-decoration: none; margin-left: 25px; font-weight: 500; }
+        .nav-links a:hover { border-bottom: 2px solid white; }
+        .content-container { max-width: 1200px; margin: 30px auto; background: white; padding: 20px; border-radius: 10px; min-height: 80vh; }
+        .logo-small { height: 40px; vertical-align: middle; margin-right: 10px; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div>
+            <img src="~/images/Logo.jpg" class="logo-small" />
+            <span style="font-weight: bold;">SALES SYSTEM</span>
+        </div>
+        <div class="nav-links">
+            <a asp-controller="Sales" asp-action="Shop">🛒 POS / ขายสินค้า</a>
+            <a asp-controller="Sales" asp-action="StockCheck">📋 เช็คสต็อกสินค้า</a>
+            <a asp-controller="Product" asp-action="Index" style="background: var(--staff-blue); padding: 8px 15px; border-radius: 5px;">Logout</a>
+        </div>
+    </nav>
+    <div class="content-container">
+        @RenderBody()
+    </div>
+</body>
+</html>
