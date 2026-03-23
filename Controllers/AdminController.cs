@@ -18,11 +18,11 @@ namespace SirinEngineering.Controllers
             return View();
         }
 
-        public IActionResult StaffManage()
-        {
-            var staffList = _db.TBL_User.Where(u => u.U_RoleID == 1 || u.U_RoleID == 2).ToList();
-            return View(staffList);
-        }
+        // public IActionResult StaffManage()
+        // {
+        //     var staffList = _db.TBL_User.Where(u => u.U_RoleID == 1 || u.U_RoleID == 2).ToList();
+        //     return View(staffList);
+        // }
         // ดึงข้อมูลมาโชว์
         [HttpGet]
         public IActionResult EditStaff(int id)
@@ -73,7 +73,42 @@ namespace SirinEngineering.Controllers
             }
             return RedirectToAction("StaffManage");
         }
-        
+
+        [HttpPost]
+        public IActionResult ToggleUserStatus(int id)
+        {
+            var user = _db.TBL_User.Find(id);
+
+            if (user == null)
+                return NotFound();
+
+            user.U_IsActive = !user.U_IsActive;
+
+            _db.SaveChanges();
+
+            return RedirectToAction("StaffManage");
+        }
+
+        public IActionResult StaffManage(string? search)
+        {
+            var query = _db.TBL_User
+                .Where(u => u.U_RoleID == 1 || u.U_RoleID == 2)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(u =>
+                    u.U_FullName.Contains(search) ||
+                    u.U_Username.Contains(search));
+
+                ViewBag.Search = search;
+            }
+
+            var staffList = query.ToList();
+
+            return View(staffList);
+        }
+
         public IActionResult AuditOrders()
         {
             // แสดงหน้าจัดการออเดอร์ (ยังไม่ทำฟังก์ชัน)
