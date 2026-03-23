@@ -1,6 +1,404 @@
 @{
     Layout = "~/Views/Shared/Layout/_AdminLayout.cshtml";
-    ViewData["Title"] = "Dashboard - Sirin Engineering";
+    var categories = ViewBag.Categories as List<SirinEngineering.Models.db.CategoryModel>;
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
 }
 
-อันนี้เป็นหน้าจัดการสินค้าสำหรับผู้ดูแลระบบ (Admin) ซึ่งจะแสดงรายการสินค้าทั้งหมดในระบบ โดยจะมีข้อมูลเช่น ชื่อสินค้า, ราคา, จำนวนคงเหลือ และสถานะการขาย เพื่อให้ผู้ดูแลระบบสามารถจัดการสินค้าได้อย่างมีประสิทธิภาพ
+@model IEnumerable<SirinEngineering.Models.db.ProductModel>
+<style>
+    .card-minimal {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        background: white;
+    }
+
+    .table thead th {
+        border: none;
+        color: #7F7F7F;
+        font-weight: 500;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        padding: 15px;
+    }
+
+    .product-img {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 10px;
+        background: #f8f9fa;
+    }
+
+    .status-low {
+        color: #dc3545;
+        font-weight: bold;
+        background: #fff5f5;
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+    }
+
+    .badge-active {
+        background-color: #e6fffa;
+        color: #047481;
+        border-radius: 8px;
+        padding: 5px 12px;
+        font-size: 0.75rem;
+    }
+
+    .badge-inactive {
+        background-color: #f7fafc;
+        color: #718096;
+        border-radius: 8px;
+        padding: 5px 12px;
+        font-size: 0.75rem;
+    }
+
+    .btn-sirin {
+        background: #003D7C;
+        color: white;
+        border-radius: 12px;
+        transition: 0.3s;
+        border: none;
+    }
+
+    .btn-sirin:hover {
+        background: #002d5c;
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    .search-bar {
+        border: none;
+        background: #fdfeff;
+        border-radius: 12px;
+        padding: 10px 18px;
+        font-size: 0.9rem;
+        min-width: 450px;
+        transition: 0.2s;
+    }
+
+    .search-bar:focus {
+        outline: none;
+        background: #fcfdff;
+    }
+
+    .minimal-page {
+        border: none;
+        background: transparent;
+        color: #6c757d;
+        border-radius: 8px;
+        margin: 0 2px;
+    }
+
+    .page-item.active .minimal-page {
+        background: #eef2f7;
+        color: #003D7C;
+        font-weight: 600;
+    }
+
+    .minimal-page:hover {
+        background: #f5f7fa;
+        color: #003D7C;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="d-flex align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-0" style="color: #003D7C;">Manage Product</h3>
+        </div>
+
+        <div class="ms-auto d-flex align-items-center gap-2">
+
+            <form method="get" class="d-flex align-items-center">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-0">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" name="search" value="@ViewBag.Search" class="search-bar"
+                           placeholder="ค้นหาสินค้า..." onchange="this.form.submit()" />
+                </div>
+            </form>
+
+            <button class="btn btn-sirin px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                + เพิ่มสินค้า
+            </button>
+
+        </div>
+    </div>
+
+    <div class="card card-minimal border-0 shadow-sm">
+        <div class="card-body p-0 text-center">
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead class="bg-light">
+                        <tr class="small text-muted">
+                            <th class="ps-4 text-start">Image</th>
+                            <th class="text-start">Product Name</th>
+                            <th>Category</th>
+                            <th>Cost</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                            <th>Status</th>
+                            <th class="text-end pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="ps-4 text-start">
+                                    <img src="~/images/products/@(string.IsNullOrEmpty(item.PD_ProductImage) ? "no-image.png" : item.PD_ProductImage)"
+                                         class="product-img" />
+                                </td>
+                                <td class="text-start">
+                                    <div class="fw-bold" style="color: #333;">@item.PD_ProductName</div>
+                                    <div class="small text-muted">Brand: @item.PD_Brand</div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border-0 shadow-sm px-3 py-2"
+                                          style="border-radius:8px;">
+                                        @item.Category?.C_CategoryName
+                                    </span>
+                                </td>
+                                <td class="text-muted small">฿@item.PD_Cost.ToString("N2")</td>
+                                <td class="fw-bold" style="color: #003D7C;">฿@item.PD_Price.ToString("N2")</td>
+                                <td>
+                                    <span class="@(item.PD_StockQty <= 10 ? "status-low" : "")">
+                                        @item.PD_StockQty ชิ้น
+                                    </span>
+                                </td>
+                                <td>
+                                    @if (item.PD_IsActive)
+                                    {
+                                        <span class="badge-active">เปิดขาย</span>
+                                    }
+                                    else
+                                    {
+
+                                        <span class="badge-inactive">ปิดการขาย</span>
+                                    }
+                                </td>
+                                <td class="text-end pe-4">
+                                    <button class="btn btn-light btn-sm rounded-pill px-3 shadow-sm border text-secondary"
+                                            data-bs-toggle="modal" data-bs-target="#editModal-@item.PD_ProductID">
+                                        แก้ไข
+                                    </button>
+                                    <form asp-action="DeleteProduct" method="post" class="d-inline">
+                                        <input type="hidden" name="id" value="@item.PD_ProductID" />
+
+                                        <button type="submit"
+                                                class="btn text-danger"
+                                                onclick="return confirm('คุณแน่ใจหรือไม่ว่าต้องการลบสินค้านี้?');">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+
+                            <div class="modal fade" id="editModal-@item.PD_ProductID" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content border-0 shadow-lg" style="border-radius:25px;">
+                                        <form asp-action="EditProduct" method="post" enctype="multipart/form-data">
+                                            <div class="modal-body p-4 text-start">
+                                                <h5 class="fw-bold mb-4" style="color:#003D7C;">แก้ไขสินค้า & เติมสต็อก
+                                                </h5>
+                                                <input type="hidden" name="PD_ProductID" value="@item.PD_ProductID" />
+
+                                                <div class="mb-3">
+                                                    <label class="small fw-bold text-muted">ชื่อสินค้า</label>
+                                                    <input name="PD_ProductName" value="@item.PD_ProductName"
+                                                           class="form-control border-0 bg-light p-3" required
+                                                           style="border-radius:12px;" />
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="small fw-bold text-muted">หมวดหมู่</label>
+                                                        <select name="PD_CategoryID"
+                                                                class="form-select border-0 bg-light p-3"
+                                                                style="border-radius:12px;">
+                                                            @if (categories != null)
+                                                            {
+                                                                foreach (var cat in categories)
+                                                                {
+                                                                    <!option value="@cat.C_CategoryID" @(cat.C_CategoryID ==
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          item.PD_CategoryID ? "selected" : "")>@cat.C_CategoryName
+                                                                    </!option>
+                                                                }
+                                                            }
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="small fw-bold text-muted">ยี่ห้อ</label>
+                                                        <input name="PD_Brand" value="@item.PD_Brand"
+                                                               class="form-control border-0 bg-light p-3"
+                                                               style="border-radius:12px;" />
+                                                    </div>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="small fw-bold text-muted">ราคาขาย (Price)</label>
+                                                        <input name="PD_Price" type="number" min="0" step="0.01"
+                                                               value="@item.PD_Price.ToString("0.00")"
+                                                               class="form-control border-0 bg-light p-3" required
+                                                               style="border-radius:12px;" />
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="small fw-bold text-muted">ต้นทุน (Cost)</label>
+                                                        <input name="PD_Cost" type="number" min="0" step="0.01"
+                                                               value="@item.PD_Cost.ToString("0.00")"
+                                                               class="form-control border-0 bg-light p-3" required
+                                                               style="border-radius:12px;" />
+                                                    </div>
+                                                </div>
+
+                                                <div class="row bg-info bg-opacity-10 p-2 rounded-3 mb-3 mx-1">
+                                                    <div class="col-md-7">
+                                                        <label class="small fw-bold text-info">เติมสต็อกเพิ่ม</label>
+                                                        <input name="PD_StockQty" type="number" value="0" min="0"
+                                                               class="form-control border-0 p-2" style="border-radius:8px;" />
+                                                    </div>
+                                                    <div class="col-md-5 d-flex align-items-center justify-content-center">
+                                                        <div class="text-center">
+                                                            <div class="small text-muted">สต็อกเดิม</div>
+                                                            <div class="fw-bold text-dark">@item.PD_StockQty ชิ้น</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="mb-4">
+                                                    <label class="small fw-bold text-muted">สถานะการขาย</label>
+                                                    <select name="PD_IsActive" class="form-select border-0 bg-light p-3"
+                                                            style="border-radius:12px;">
+                                                        <!option value="true" @(item.PD_IsActive ? "selected" : "")>เปิดขาย
+                                                        </!option>
+                                                        <!option value="false" @(!item.PD_IsActive ? "selected" : "")>
+                                                            ปิดการขาย</!option>
+                                                        </select>
+                                                    </div>
+
+                                                    <div class="mb-4">
+                                                        <label
+                                                        class="small fw-bold text-muted d-block mb-2">เปลี่ยนรูปภาพสินค้า</label>
+                                                        <input type="file" name="ImageFile"
+                                                               class="form-control border-0 bg-light p-2"
+                                                               style="border-radius:10px;" />
+                                                    </div>
+
+                                                    <div class="d-grid gap-2">
+                                                        <button type="submit"
+                                                                class="btn btn-sirin p-3 fw-bold shadow-sm">บันทึกการแก้ไข</button>
+                                                        <button type="button" class="btn btn-link text-muted btn-sm"
+                                                                data-bs-dismiss="modal">ยกเลิก</button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="d-flex justify-content-center mt-4">
+        <nav>
+            <ul class="pagination pagination-sm mb-0">
+
+                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                {
+                    <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                        <a class="page-link minimal-page" href="?page=@i&search=@ViewBag.Search">
+                            @i
+                        </a>
+                    </li>
+                }
+
+            </ul>
+        </nav>
+    </div>
+
+    <div class="modal fade" id="addProductModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius:25px;">
+                <form asp-action="CreateProduct" method="post" enctype="multipart/form-data">
+                    <div class="modal-body p-4 text-start">
+                        <h5 class="fw-bold mb-4" style="color:#003D7C;">เพิ่มสินค้าเข้าคลัง</h5>
+
+                        <div class="mb-3">
+                            <label class="small fw-bold text-muted">ชื่อสินค้า</label>
+                            <input name="PD_ProductName" class="form-control border-0 bg-light p-3"
+                                   placeholder="ระบุชื่อสินค้า" required style="border-radius:12px;" />
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="small fw-bold text-muted">หมวดหมู่</label>
+                                <select name="PD_CategoryID" class="form-select border-0 bg-light p-3"
+                                        style="border-radius:12px;">
+                                    @if (categories != null)
+                                    {
+                                        foreach (var cat in categories)
+                                        {
+                                            <option value="@cat.C_CategoryID">@cat.C_CategoryName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="small fw-bold text-muted">ยี่ห้อ (Brand)</label>
+                                <input name="PD_Brand" class="form-control border-0 bg-light p-3" placeholder="ระบุยี่ห้อ"
+                                       style="border-radius:12px;" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="small fw-bold text-muted">ราคาต้นทุน (Cost)</label>
+                                <input name="PD_Cost" type="number" min="0" step="0.01"
+                                       class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="small fw-bold text-muted">ราคาขาย (Price)</label>
+                                <input name="PD_Price" type="number" min="0" step="0.01"
+                                       class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="small fw-bold text-muted">จำนวนสต็อกเริ่มต้น</label>
+                                <input name="PD_StockQty" type="number" min="0" class="form-control border-0 bg-light p-3"
+                                       required style="border-radius:12px;" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="small fw-bold text-muted">สถานะการขาย</label>
+                                <select name="PD_IsActive" class="form-select border-0 bg-light p-3"
+                                        style="border-radius:12px;">
+                                    <option value="true">เปิดขาย</option>
+                                    <option value="false">ปิดการขาย</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="small fw-bold text-muted d-block mb-2">รูปภาพสินค้า</label>
+                            <input type="file" name="ImageFile" class="form-control border-0 bg-light p-2"
+                                   style="border-radius:10px;" />
+                        </div>
+
+                        <div class="d-grid shadow-sm">
+                            <button type="submit" class="btn btn-sirin p-3 fw-bold">บันทึกสินค้า</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
