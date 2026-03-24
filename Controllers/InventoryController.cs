@@ -214,7 +214,7 @@ namespace SirinEngineering.Controllers
             return RedirectToAction("ManageProduct");
         }
 
-        // Function สำหรับอัปโหลดรูป
+        // อัปโหลดรูป
         private async Task<string> UploadImage(IFormFile file)
         {
             string fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
@@ -285,10 +285,106 @@ namespace SirinEngineering.Controllers
             return RedirectToAction("ManageProduct");
         }
 
-        public IActionResult ManagePromotion()
+
+
+
+
+        // Manage Promotion
+        public IActionResult ManagePromotion(string search, int page = 1)
         {
-            // แสดงหน้าจัดการโปรโมชัน (ยังไม่ทำฟังก์ชัน)
-            return View();
+            int pageSize = 6;
+            var query = _db.TBL_Promotion.Include(p => p.TargetCategory).AsQueryable();
+
+            // 1. Logic การค้นหา (ตามชื่อโปรโมชั่น)
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(p => p.PM_PromotionName.Contains(search));
+                ViewBag.Search = search;
+            }
+
+            // 2. คำนวณ Pagination
+            var totalItems = query.Count();
+            var promotions = query
+                .OrderByDescending(p => p.PM_PromotionID)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+            ViewBag.Categories = _db.TBL_Category.ToList();
+
+            return View(promotions);
+        }
+
+        [HttpPost]
+        public IActionResult CreatePromotion(PromotionModel model)
+        {
+            if (string.IsNullOrEmpty(model.PM_Detail))
+            {
+                model.PM_Detail = "";
+            }
+
+            if (model != null)
+            {
+                _db.TBL_Promotion.Add(model);
+                _db.SaveChanges();
+            }
+            return RedirectToAction("ManagePromotion");
+        }
+
+        [HttpPost]
+        public IActionResult DeletePromotion(int id)
+        {
+            var promo = _db.TBL_Promotion.Find(id);
+            if (promo != null)
+            {
+                _db.TBL_Promotion.Remove(promo);
+                _db.SaveChanges();
+            }
+            return RedirectToAction("ManagePromotion");
+        }
+
+        [HttpPost]
+        public IActionResult TogglePromotionStatus(int id)
+        {
+            var promo = _db.TBL_Promotion.Find(id);
+            if (promo != null)
+            {
+                promo.PM_IsActive = !promo.PM_IsActive; // สลับค่า true/false
+                _db.SaveChanges();
+            }
+            return RedirectToAction("ManagePromotion");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditPromotion(PromotionModel model)
+        {
+            // 1. ค้นหาโปรโมชั่นเดิมจาก ID
+            var existingPromo = await _db.TBL_Promotion.FindAsync(model.PM_PromotionID);
+
+            if (existingPromo == null)
+            {
+                return NotFound();
+            }
+
+            // 2. อัปเดตค่าต่างๆ (รองรับทุก Logic)
+            existingPromo.PM_PromotionName = model.PM_PromotionName;
+            existingPromo.PM_Detail = model.PM_Detail ?? ""; // ป้องกัน Error Null
+            existingPromo.PM_DiscountValue = model.PM_DiscountValue;
+            existingPromo.PM_MinSpend = model.PM_MinSpend;
+            existingPromo.PM_MinQuantity = model.PM_MinQuantity;
+            existingPromo.PM_FreeQuantity = model.PM_FreeQuantity;
+            existingPromo.PM_TargetCategoryID = model.PM_TargetCategoryID;
+            existingPromo.PM_StartDate = model.PM_StartDate;
+            existingPromo.PM_EndDate = model.PM_EndDate;
+            // หมายเหตุ: PM_PromoType มักจะไม่แก้หลังจากสร้างแล้ว แต่ถ้าจะแก้ก็ใส่เพิ่มได้ครับ
+
+            // 3. บันทึก
+            _db.TBL_Promotion.Update(existingPromo);
+            await _db.SaveChangesAsync();
+
+            return RedirectToAction("ManagePromotion");
         }
     }
 }

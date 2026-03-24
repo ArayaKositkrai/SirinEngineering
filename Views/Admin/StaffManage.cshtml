@@ -70,6 +70,8 @@
         background: #f5f7fa;
         color: #003D7C;
     }
+    .form-check-input:checked { background-color: #003D7C; border-color: #003D7C; }
+    .btn-link-status { border: none; background: none; padding: 0; }
 </style>
 
 <div class="container-fluid">
@@ -118,94 +120,105 @@
                                 <td class="text-start ps-4 fw-bold">@item.U_FullName</td>
                                 <td>@item.U_Username</td>
                                 <td>@item.U_Phone</td>
-
                                 <td>
                                     @if (item.U_RoleID == 1)
                                     {
-                                        <span class="badge bg-light text-dark px-3 py-2">Admin</span>
+                                        <span class="badge bg-light text-dark px-3 py-2"
+                                              style="border-radius: 8px;">Admin</span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-light text-dark px-3 py-2">Staff</span>
+                                        <span class="badge bg-light text-dark px-3 py-2"
+                                              style="border-radius: 8px;">Staff</span>
                                     }
                                 </td>
 
-                                <!-- 🔥 Toggle Status -->
                                 <td>
                                     <form asp-action="ToggleUserStatus" method="post">
                                         <input type="hidden" name="id" value="@item.U_UserID" />
-
-                                        <button type="submit"
-                                                class="badge border-0 @(item.U_IsActive ? "bg-success" : "bg-secondary") px-3 py-2">
+                                        <div class="form-check form-switch d-flex justify-content-center">
+                                            <input class="form-check-input" type="checkbox" role="switch"
+                                                   style="cursor: pointer;" @(item.U_IsActive ? "checked" : "")
+                                                   onchange="this.form.submit()">
+                                        </div>
+                                        <div class="small @(item.U_IsActive ? "text-success" : "text-muted")"
+                                             style="font-size: 0.7rem;">
                                             @(item.U_IsActive ? "Active" : "Inactive")
-                                        </button>
+                                        </div>
                                     </form>
                                 </td>
 
                                 <td class="text-end pe-4">
                                     <div class="d-flex justify-content-end gap-2">
-
-                                        <!-- Edit -->
                                         <button
                                             class="btn btn-light btn-sm rounded-pill px-3 shadow-sm border text-secondary"
                                             data-bs-toggle="modal" data-bs-target="#editModal-@item.U_UserID">
                                             แก้ไข
                                         </button>
 
-                                        <!-- Delete -->
-                                        <form asp-action="DeleteStaff" method="post" class="d-inline"
-                                              onsubmit="return confirm('คุณแน่ใจใช่หรือไม่ว่าต้องการลบพนักงานคนนี้?');">
+                                        <form asp-action="DeleteStaff" method="post" class="d-inline">
                                             <input type="hidden" name="id" value="@item.U_UserID" />
-                                            <button type="submit" class="btn text-danger">
+                                            <button type="submit" class="btn text-danger"
+                                                    onclick="return confirm('คุณแน่ใจหรือไม่ว่าต้องการลบพนักงานคนนี้?');">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>
-
                                     </div>
                                 </td>
                             </tr>
 
                             <div class="modal fade" id="editModal-@item.U_UserID" tabindex="-1">
                                 <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content border-0 shadow-lg" style="border-radius:20px;">
+                                    <div class="modal-content border-0 shadow-lg" style="border-radius:25px;">
                                         <form asp-action="EditStaff" method="post">
-                                            <div class="modal-body p-4">
+                                            <div class="modal-body p-4 text-start">
                                                 <input type="hidden" name="U_UserID" value="@item.U_UserID" />
-                                                <h5 class="fw-bold mb-3 text-start" style="color:#003D7C;">แก้ไขข้อมูล :
-                                                    @item.U_FullName</h5>
-                                                
-                                                    <div class="mb-3">
-                                                        <label class="small text-muted d-block text-start">ชื่อ-นามสกุล</label>
-                                                        <input name="U_FullName" value="@item.U_FullName"
+                                                <h5 class="fw-bold mb-4" style="color:#003D7C;">📝 แก้ไขข้อมูลพนักงาน</h5>
+                        
+                                                <div class="mb-3">
+                                                    <label class="small fw-bold text-muted">ชื่อ-นามสกุล</label>
+                                                    <input name="U_FullName" value="@item.U_FullName"
+                                                           class="form-control border-0 bg-light p-3" required
+                                                           style="border-radius:12px;" />
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-6 mb-3">
+                                                        <label class="small fw-bold text-muted">Username</label>
+                                                        <input name="U_Username" value="@item.U_Username"
                                                                class="form-control border-0 bg-light p-3" required
                                                                style="border-radius:12px;" />
                                                     </div>
-                                                    <div class="mb-3">
-                                                        <label class="small text-muted d-block text-start">บทบาท</label>
-                                                        <select name="U_RoleID" class="form-control border-0 bg-light p-3" style="border-radius:12px;">
+                                                    <div class="col-6 mb-3">
+                                                        <label class="small fw-bold text-muted">บทบาท</label>
+                                                        <select name="U_RoleID" class="form-select border-0 bg-light p-3"
+                                                                style="border-radius:12px;">
                                                             <!option value="1" @(item.U_RoleID == 1 ? "selected" : "")>Admin
                                                             </!option>
                                                             <!option value="2" @(item.U_RoleID == 2 ? "selected" : "")>Staff
                                                             </!option>
                                                         </select>
                                                     </div>
-                                                    <div class="mb-3">
-                                                        <label class="small text-muted d-block text-start">Username</label>
-                                                        <input name="U_Username" value="@item.U_Username" class="form-control border-0 bg-light p-3" required style="border-radius:12px;"/>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label class="small fw-bold text-muted">เบอร์โทรศัพท์</label>
+                                                    <input name="U_Phone" value="@item.U_Phone"
+                                                           class="form-control border-0 bg-light p-3" required
+                                                           style="border-radius:12px;" />
+                                                </div>
+
+                                                <div class="mb-4">
+                                                    <label class="small fw-bold text-muted">Password
+                                                        (เว้นว่างถ้าไม่เปลี่ยน)</label>
+                                                        <input name="U_Password" type="password"
+                                                               class="form-control border-0 bg-light p-3"
+                                                               style="border-radius:12px;" placeholder="******" />
                                                     </div>
-                                                    <div class="mb-3">
-                                                        <label class="small text-muted d-block text-start">เบอร์โทรศัพท์</label>
-                                                        <input name="U_Phone" value="@item.U_Phone" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label class="small text-muted d-block text-start">Password *เว้นว่างถ้าไม่เปลี่ยน*</label>
-                                                        <input name="U_Password" type="password" class="form-control border-0 bg-light p-3" required style="border-radius:12px;"
-                                                               placeholder="******" />
-                                                    </div>
-                                                    <div class="d-grid">
-                                                        <button type="submit" class="btn btn-sirin p-3 fw-bold">
-                                                            บันทึกการแก้ไข
-                                                        </button>
+
+                                                    <div class="d-grid shadow-sm">
+                                                        <button type="submit"
+                                                                class="btn btn-sirin p-3 fw-bold">บันทึกการแก้ไข</button>
                                                     </div>
                                                 </div>
                                             </form>
@@ -229,30 +242,35 @@
                     <div class="modal-body p-4">
                         <h5 class="fw-bold mb-3" style="color:#003D7C;">เพิ่มพนักงานใหม่</h5>
                     
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="small text-muted d-block text-start">ชื่อ-นามสกุล</label>
-                            <input name="U_FullName" class="form-control border-0 bg-light p-3" required style="border-radius:12px;"/>
-                        </div>
-                        <div class="mb-3">
-                            <label class="small text-muted d-block text-start">บทบาท</label>
-                            <select name="U_RoleID" class="form-control border-0 bg-light p-3" required style="border-radius:12px;">
-                                <option value="1">Admin</option>
-                                <option value="2" selected>Staff</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="small text-muted d-block text-start">Username</label>
-                            <input name="U_Username" class="form-control border-0 bg-light p-3" required style="border-radius:12px;"/>
-                        </div>
-                        <div class="mb-3">
-                            <label class="small text-muted d-block text-start">Password</label>
-                            <input name="U_Password" type="password" class="form-control border-0 bg-light p-3" required style="border-radius:12px;"/>
-                        </div>
-                        <div class="mb-3">
-                            <label class="small text-muted d-block text-start">เบอร์โทรศัพท์</label>
-                            <input name="U_Phone" class="form-control border-0 bg-light p-3" style="border-radius:12px;"/>
-                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="small text-muted d-block text-start">ชื่อ-นามสกุล</label>
+                                <input name="U_FullName" class="form-control border-0 bg-light p-3" required
+                                       style="border-radius:12px;" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="small text-muted d-block text-start">บทบาท</label>
+                                <select name="U_RoleID" class="form-control border-0 bg-light p-3" required
+                                        style="border-radius:12px;">
+                                    <option value="1">Admin</option>
+                                    <option value="2" selected>Staff</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="small text-muted d-block text-start">Username</label>
+                                <input name="U_Username" class="form-control border-0 bg-light p-3" required
+                                       style="border-radius:12px;" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="small text-muted d-block text-start">Password</label>
+                                <input name="U_Password" type="password" class="form-control border-0 bg-light p-3" required
+                                       style="border-radius:12px;" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="small text-muted d-block text-start">เบอร์โทรศัพท์</label>
+                                <input name="U_Phone" class="form-control border-0 bg-light p-3"
+                                       style="border-radius:12px;" />
+                            </div>
                         </div>
                         <div class="d-grid">
                             <button type="submit" class="btn btn-sirin p-3 fw-bold">

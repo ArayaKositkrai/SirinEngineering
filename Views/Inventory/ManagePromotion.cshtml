@@ -1,6 +1,370 @@
 @{
     Layout = "~/Views/Shared/Layout/_AdminLayout.cshtml";
-    ViewData["Title"] = "Dashboard - Sirin Engineering";
+    var categories = ViewBag.Categories as List<SirinEngineering.Models.db.CategoryModel>;
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
 }
 
-อันนี้เป็นหน้าจัดการโปรโมชั่นสำหรับผู้ดูแลระบบ (Admin) ซึ่งจะแสดงรายการโปรโมชั่นทั้งหมดในระบบ โดยจะมีข้อมูลเช่น ชื่อโปรโมชั่น, วันที่เริ่มต้น, วันที่สิ้นสุด, และส่วนลด เพื่อให้ผู้ดูแลระบบสามารถจัดการโปรโมชั่นได้อย่างมีประสิทธิภาพ
+@model IEnumerable<SirinEngineering.Models.db.PromotionModel>
+
+<style>
+    .card-minimal { border: none; border-radius: 15px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); background: white; }
+    .table thead th { border: none; color: #7F7F7F; font-weight: 500; text-transform: uppercase; font-size: 0.75rem; padding: 15px; }
+    .badge-promo { padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 600; display: inline-block; }
+    .type-blue { background: #ebf8ff; color: #2b6cb0; }
+    .type-green { background: #f0fff4; color: #38a169; }
+    .btn-sirin { background: #003D7C; color: white; border-radius: 12px; border: none; transition: 0.3s; padding: 10px 20px; font-weight: 500; }
+    .btn-sirin:hover { background: #002d5c; color: white; }
+    .dropdown-item-minimal { padding: 10px 20px; font-size: 0.9rem; border-radius: 8px; margin: 2px 5px; }
+    .form-check-input:checked { background-color: #003D7C; border-color: #003D7C; }
+    .btn-link-status { border: none; background: none; padding: 0; }
+    .search-bar { border: none; background: #fdfeff; border-radius: 12px; padding: 10px 18px; font-size: 0.9rem; min-width: 400px; transition: 0.2s; }
+    .search-bar:focus { outline: none; background: #fcfdff; }
+    .minimal-page { border: none; background: transparent; color: #6c757d; border-radius: 8px; margin: 0 2px; text-decoration: none; padding: 8px 14px; }
+    .page-item.active .minimal-page { background: #eef2f7; color: #003D7C; font-weight: 600; }
+    .minimal-page:hover { background: #f5f7fa; color: #003D7C; }
+</style>
+
+<div class="container-fluid">
+    <div class="d-flex align-items-center mb-4">
+        <h3 class="fw-bold mb-0" style="color: #003D7C;">Promotions</h3>
+        
+        <div class="ms-auto d-flex align-items-center gap-2">
+            <form method="get" asp-action="ManagePromotion" class="d-flex align-items-center">
+                <div class="input-group shadow-sm" style="border-radius: 12px; overflow: hidden;">
+                    <span class="input-group-text bg-white border-0">
+                        <i class="bi bi-search text-muted"></i>
+                    </span>
+                    <input type="text" name="search" value="@ViewBag.Search" class="search-bar" 
+                           placeholder="ค้นหาชื่อโปรโมชั่น..." onchange="this.form.submit()" />
+                </div>
+            </form>
+
+            <div class="dropdown">
+                <button class="btn btn-sirin px-4 shadow-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    + สร้างโปรโมชั่น
+                </button>
+                <ul class="dropdown-menu border-0 shadow-lg p-2" style="border-radius: 15px;">
+                    <li><a class="dropdown-item py-2" href="#" data-bs-toggle="modal" data-bs-target="#promoDiscount">ลดราคาปกติ</a></li>
+                    <li><a class="dropdown-item py-2" href="#" data-bs-toggle="modal" data-bs-target="#promoB1G1">ซื้อ X แถม Y (ของแถม)</a></li>
+                    <li><a class="dropdown-item py-2" href="#" data-bs-toggle="modal" data-bs-target="#promoMinSpend">ลดตามยอดซื้อขั้นต่ำ</a></li>
+                    <li><a class="dropdown-item py-2" href="#" data-bs-toggle="modal" data-bs-target="#promoMinQty">ลดตามจำนวนชิ้น</a></li>
+                    <li><a class="dropdown-item py-2" href="#" data-bs-toggle="modal" data-bs-target="#promoCategory">ลดรายหมวดหมู่</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="card card-minimal border-0 shadow-sm">
+        <div class="card-body p-0 text-center">
+            <table class="table align-middle">
+                <thead class="bg-light">
+                    <tr class="small text-muted">
+                        <th class="ps-4 text-start">Promotion</th>
+                        <th>Type</th>
+                        <th>Condition / Reward</th>
+                        <th>Status</th>
+                        <th class="text-end pe-4">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model) {
+                        <tr>
+                            <td class="ps-4 text-start">
+                                <div class="fw-bold">@item.PM_PromotionName</div>
+                                <div class="small text-muted">@item.PM_StartDate.ToString("dd/MM/yy") - @item.PM_EndDate.ToString("dd/MM/yy")</div>
+                            </td>
+                            <td><span class="badge-promo type-blue">@item.PM_PromoType</span></td>
+                            <td>
+                                @if(item.PM_DiscountValue > 0) { <div class="fw-bold text-primary">ลด ฿@item.PM_DiscountValue?.ToString("N0")</div> }
+                                @if(item.PM_FreeQuantity > 0) { <div class="fw-bold text-success">แถม @item.PM_FreeQuantity ชิ้น</div> }
+                            </td>
+                            <td>
+                                <form asp-action="TogglePromotionStatus" method="post">
+                                    <input type="hidden" name="id" value="@item.PM_PromotionID" />
+                                    <div class="form-check form-switch d-flex justify-content-center">
+                                        <input class="form-check-input" type="checkbox" role="switch" 
+                                               @(item.PM_IsActive ? "checked" : "") 
+                                               onchange="this.form.submit()">
+                                    </div>
+                                    <div class="small @(item.PM_IsActive ? "text-success" : "text-muted")">
+                                        @(item.PM_IsActive ? "Active" : "Inactive")
+                                    </div>
+                                </form>
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button class="btn btn-light btn-sm rounded-pill px-3 shadow-sm border text-secondary"
+                                            data-bs-toggle="modal" data-bs-target="#editPromoModal-@item.PM_PromotionID">
+                                        แก้ไข
+                                    </button>
+
+                                    <form asp-action="DeletePromotion" method="post" class="d-inline">
+                                        <input type="hidden" name="id" value="@item.PM_PromotionID" />
+                                        <button type="submit" class="btn text-danger"
+                                                onclick="return confirm('คุณแน่ใจหรือไม่ว่าต้องการลบโปรโมชั่นนี้?');">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <div class="modal fade" id="editPromoModal-@item.PM_PromotionID" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content border-0 shadow-lg" style="border-radius:25px;">
+                                    <form asp-action="EditPromotion" method="post">
+                                        <input type="hidden" name="PM_PromotionID" value="@item.PM_PromotionID" />
+                                        <input type="hidden" name="PM_PromoType" value="@item.PM_PromoType" />
+                                        <div class="modal-body p-4 text-start">
+                                            <h5 class="fw-bold mb-4">แก้ไขโปรโมชั่น (@item.PM_PromoType)</h5>
+                                            
+                                            <div class="mb-3">
+                                                <label class="small fw-bold text-muted">ชื่อโปรโมชั่น</label>
+                                                <input name="PM_PromotionName" value="@item.PM_PromotionName" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
+                                            </div>
+
+                                            @* แสดงช่องกรอกตามประเภทเดิมของมัน *@
+                                            @if(item.PM_PromoType == "Discount" || item.PM_PromoType == "MinSpend" || item.PM_PromoType == "CategorySale") {
+                                                <div class="mb-3">
+                                                    <label class="small fw-bold text-muted">จำนวนเงินที่ลด (฿)</label>
+                                                    <input name="PM_DiscountValue" value="@item.PM_DiscountValue" type="number" class="form-control border-0 bg-light p-3" style="border-radius:12px;" />
+                                                </div>
+                                            }
+
+                                            @if(item.PM_PromoType == "MinSpend") {
+                                                <div class="mb-3">
+                                                    <label class="small fw-bold text-muted">ยอดซื้อขั้นต่ำ (฿)</label>
+                                                    <input name="PM_MinSpend" value="@item.PM_MinSpend" type="number" class="form-control border-0 bg-light p-3" style="border-radius:12px;" />
+                                                </div>
+                                            }
+
+                                            <div class="row mb-3">
+                                                <div class="col-6">
+                                                    <label class="small fw-bold text-muted">เริ่ม</label>
+                                                    <input name="PM_StartDate" type="date" value="@item.PM_StartDate.ToString("yyyy-MM-dd")" class="form-control border-0 bg-light p-3" style="border-radius:12px;" />
+                                                </div>
+                                                <div class="col-6">
+                                                    <label class="small fw-bold text-muted">สิ้นสุด</label>
+                                                    <input name="PM_EndDate" type="date" value="@item.PM_EndDate.ToString("yyyy-MM-dd")" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
+                                                </div>
+                                            </div>
+
+                                            <button type="submit" class="btn btn-sirin w-100 p-3 fw-bold">บันทึกการแก้ไข</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    @if (totalPages > 1)
+    {
+        <div class="d-flex justify-content-center mt-4">
+            <nav>
+                <ul class="pagination mb-0">
+                    @for (int i = 1; i <= totalPages; i++)
+                    {
+                        <li class="page-item @(i == currentPage ? "active" : "")">
+                            <a class="minimal-page shadow-sm" href="@Url.Action("ManagePromotion", new { page = i, search = ViewBag.Search })">@i</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        </div>
+    }
+</div>
+
+<div class="modal fade" id="promoDiscount" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:25px;">
+            <form asp-action="CreatePromotion" method="post">
+                <input type="hidden" name="PM_PromoType" value="Discount" />
+                <div class="modal-body p-4">
+                    <h5 class="fw-bold mb-4">ลดราคาปกติ (Direct)</h5>
+                    <div class="mb-3">
+                        <label class="small fw-bold text-muted">ชื่อโปรโมชั่น</label>
+                        <input name="PM_PromotionName" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="small fw-bold text-muted">จำนวนเงินที่ลด (บาท)</label>
+                        <input name="PM_DiscountValue" type="number" min="0" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="small fw-bold text-muted">วันที่เริ่ม</label>
+                            <input name="PM_StartDate" type="date" class="form-control border-0 bg-light p-3" value="@DateTime.Now.ToString("yyyy-MM-dd")" style="border-radius:12px;" />
+                        </div>
+                        <div class="col-6">
+                            <label class="small fw-bold text-muted">วันที่สิ้นสุด</label>
+                            <input name="PM_EndDate" type="date" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-sirin w-100 p-3 fw-bold shadow-sm">บันทึกโปรโมชั่น</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="promoB1G1" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:25px;">
+            <form asp-action="CreatePromotion" method="post">
+                <input type="hidden" name="PM_PromoType" value="BuyGetFree" />
+                <div class="modal-body p-4">
+                    <h5 class="fw-bold mb-4">โปรโมชั่นของแถม (Buy X Get Y)</h5>
+                    <div class="mb-3">
+                        <label class="small fw-bold text-muted">ชื่อโปรโมชั่น</label>
+                        <input name="PM_PromotionName" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="small fw-bold text-muted">ซื้อครบ (ชิ้น)</label>
+                            <input name="PM_MinQuantity" type="number" min="1" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
+                        </div>
+                        <div class="col-6">
+                            <label class="small fw-bold text-muted">แถมฟรี (ชิ้น)</label>
+                            <input name="PM_FreeQuantity" type="number" min="1" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="small fw-bold text-muted">วันที่เริ่ม</label>
+                            <input name="PM_StartDate" type="date" class="form-control border-0 bg-light p-3" value="@DateTime.Now.ToString("yyyy-MM-dd")" style="border-radius:12px;" />
+                        </div>
+                        <div class="col-6">
+                            <label class="small fw-bold text-muted">วันที่สิ้นสุด</label>
+                            <input name="PM_EndDate" type="date" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-sirin w-100 p-3 fw-bold shadow-sm">บันทึกโปรโมชั่น</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="promoMinSpend" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:25px;">
+            <form asp-action="CreatePromotion" method="post">
+                <input type="hidden" name="PM_PromoType" value="MinSpend" />
+                <div class="modal-body p-4">
+                    <h5 class="fw-bold mb-4">ลดราคาตามยอดซื้อ</h5>
+                    <div class="mb-3">
+                        <label class="small fw-bold text-muted">ชื่อโปรโมชั่น</label>
+                        <input name="PM_PromotionName" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="small fw-bold text-muted">ยอดซื้อขั้นต่ำ (฿)</label>
+                            <input name="PM_MinSpend" type="number" min="1" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
+                        </div>
+                        <div class="col-6">
+                            <label class="small fw-bold text-muted">ส่วนลดที่ได้ (฿)</label>
+                            <input name="PM_DiscountValue" type="number" min="1" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="small fw-bold text-muted">วันที่เริ่ม</label>
+                            <input name="PM_StartDate" type="date" class="form-control border-0 bg-light p-3" value="@DateTime.Now.ToString("yyyy-MM-dd")" style="border-radius:12px;" />
+                        </div>
+                        <div class="col-6">
+                            <label class="small fw-bold text-muted">วันที่สิ้นสุด</label>
+                            <input name="PM_EndDate" type="date" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-sirin w-100 p-3 fw-bold shadow-sm">บันทึกโปรโมชั่น</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="promoMinQty" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:25px;">
+            <form asp-action="CreatePromotion" method="post">
+                <input type="hidden" name="PM_PromoType" value="MinQty" />
+                <div class="modal-body p-4">
+                    <h5 class="fw-bold mb-4">ลดราคาตามจำนวนชิ้น</h5>
+                    <div class="mb-3">
+                        <label class="small fw-bold text-muted">ชื่อโปรโมชั่น</label>
+                        <input name="PM_PromotionName" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="small fw-bold text-muted">ซื้อครบ (ชิ้น)</label>
+                            <input name="PM_MinQuantity" type="number" min="1" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
+                        </div>
+                        <div class="col-6">
+                            <label class="small fw-bold text-muted">ส่วนลดที่ได้ (฿)</label>
+                            <input name="PM_DiscountValue" type="number" min="1" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="small fw-bold text-muted">วันที่เริ่ม</label>
+                            <input name="PM_StartDate" type="date" class="form-control border-0 bg-light p-3" value="@DateTime.Now.ToString("yyyy-MM-dd")" style="border-radius:12px;" />
+                        </div>
+                        <div class="col-6">
+                            <label class="small fw-bold text-muted">วันที่สิ้นสุด</label>
+                            <input name="PM_EndDate" type="date" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-sirin w-100 p-3 fw-bold shadow-sm">บันทึกโปรโมชั่น</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="promoCategory" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:25px;">
+            <form asp-action="CreatePromotion" method="post">
+                <input type="hidden" name="PM_PromoType" value="CategorySale" />
+                <div class="modal-body p-4">
+                    <h5 class="fw-bold mb-4">ลดราคาเฉพาะหมวดหมู่</h5>
+                    <div class="mb-3">
+                        <label class="small fw-bold text-muted">ชื่อโปรโมชั่น</label>
+                        <input name="PM_PromotionName" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="small fw-bold text-muted">เลือกหมวดหมู่</label>
+                        <select name="PM_TargetCategoryID" class="form-select border-0 bg-light p-3" style="border-radius:12px;">
+                            @if(categories != null){
+                                foreach (var cat in categories) { <option value="@cat.C_CategoryID">@cat.C_CategoryName</option> }
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="small fw-bold text-muted">จำนวนเงินที่ลด (฿)</label>
+                        <input name="PM_DiscountValue" type="number" min="1" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="small fw-bold text-muted">วันที่เริ่ม</label>
+                            <input name="PM_StartDate" type="date" class="form-control border-0 bg-light p-3" value="@DateTime.Now.ToString("yyyy-MM-dd")" style="border-radius:12px;" />
+                        </div>
+                        <div class="col-6">
+                            <label class="small fw-bold text-muted">วันที่สิ้นสุด</label>
+                            <input name="PM_EndDate" type="date" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-sirin w-100 p-3 fw-bold shadow-sm">บันทึกโปรโมชั่น</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
