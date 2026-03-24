@@ -57,7 +57,12 @@ namespace SirinEngineering.Controllers
         [HttpPost]
         public IActionResult Register(AccountViewModel model)
         {
-            if (ModelState.IsValid)
+            // ตรวจสอบเฉพาะข้อมูลในส่วน Register เท่านั้น
+            if (string.IsNullOrEmpty(model.Register.Username) || string.IsNullOrEmpty(model.Register.Password))
+            {
+                ModelState.AddModelError(string.Empty, "กรุณากรอกข้อมูลให้ครบถ้วน");
+            }
+            else
             {
                 // ตรวจสอบว่า Username ซ้ำไหม
                 if (_db.TBL_User.Any(u => u.U_Username == model.Register.Username))
@@ -66,24 +71,27 @@ namespace SirinEngineering.Controllers
                 }
                 else
                 {
-                    // สร้าง User ใหม่ลง DB
+                    // สร้าง User ใหม่
                     var newUser = new UserModel
                     {
                         U_Username = model.Register.Username,
                         U_Password = model.Register.Password,
                         U_FullName = model.Register.FullName,
                         U_Phone = model.Register.Tel,
-                        U_RoleID = 3, // 3 = Customer บังคับ Register เป็น Customer
+                        U_RoleID = 3, // 3 = Customer
                         U_IsActive = true
                     };
 
                     _db.TBL_User.Add(newUser);
                     _db.SaveChanges();
-                    return RedirectToAction("Login");
+
+                    // สมัครเสร็จให้ไปหน้า Login และแจ้งว่าสำเร็จ (ถ้าต้องการ)
+                    return RedirectToAction("Index", "Product");
                 }
             }
 
-            model.ActiveTab = "register"; // ให้หน้าเว็บค้างไว้ที่หน้า Register เมื่อมี Error
+            // ถ้ามี Error ให้ค้างไว้ที่หน้า Register
+            model.ActiveTab = "register";
             return View("Login", model);
         }
     }

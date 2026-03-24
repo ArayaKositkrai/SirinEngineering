@@ -49,7 +49,8 @@
             @* --- ฟอร์ม Register --- *@
             <div class="form-content register-form">
                 <form asp-action="Register" method="post">
-                    <div asp-validation-summary="All" class="error-msg"></div>
+                    <div asp-validation-summary="ModelOnly" class="error-msg"></div>
+                    <input type="hidden" asp-for="ActiveTab" value="register" />
                     <div class="input-box">
                         <label>Full Name</label>
                         <input asp-for="Register.FullName" type="text" placeholder="Full name" required />
@@ -66,7 +67,7 @@
                         <label>Tel.</label>
                         <input asp-for="Register.Tel" type="text" placeholder="Tel." required />
                     </div>
-                    <button type="submit" class="btn-grey">Sign Up</button>
+                    <button type="submit" class="btn-blue">Sign Up</button>
                 </form>
             </div>
         </div>
