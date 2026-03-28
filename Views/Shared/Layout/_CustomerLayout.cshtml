@@ -2,38 +2,77 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sirin Engineering - Shop</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
-        :root { --cust-blue: #003D7C; }
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #fff; }
-        header { border-bottom: 1px solid #ddd; padding: 15px 10%; display: flex; justify-content: space-between; align-items: center; }
-        .logo-box img { height: 50px; }
-        .nav-cust a { text-decoration: none; color: #333; margin-right: 30px; font-weight: 600; }
-        .nav-cust a:hover { color: var(--cust-blue); }
-        .cart-badge { background: var(--cust-blue); color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
-        .footer { background: #f9f9f9; padding: 40px 10%; margin-top: 50px; border-top: 1px solid #eee; text-align: center; color: #888; }
+        :root { --sirin-blue: #003D7C; --sirin-light: #f8f9fa; }
+        body { margin: 0; font-family: 'Inter', 'Segoe UI', sans-serif; background: #fff; color: #333; }
+        
+        /* New Minimal Navbar */
+        .navbar-custom {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 8%; background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 1000;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+        }
+        .logo-box img { height: 45px; transition: 0.3s; }
+        .logo-box img:hover { transform: scale(1.05); }
+
+        .nav-links { display: flex; gap: 35px; align-items: center; }
+        .nav-links a { 
+            text-decoration: none; color: #555; font-weight: 500; 
+            font-size: 0.95rem; transition: 0.3s; position: relative;
+        }
+        .nav-links a:hover { color: var(--sirin-blue); }
+        .nav-links a.active { color: var(--sirin-blue); font-weight: 700; }
+        
+        /* Cart Badge Styling */
+        .cart-icon { position: relative; font-size: 1.2rem; color: #333; }
+        .cart-badge { 
+            position: absolute; top: -8px; right: -12px;
+            background: #ff4d4f; color: white; padding: 2px 6px; 
+            border-radius: 50%; font-size: 10px; font-weight: bold;
+            box-shadow: 0 2px 5px rgba(255, 77, 79, 0.3);
+        }
+
+        .btn-login {
+            background: var(--sirin-blue); color: white !important;
+            padding: 10px 25px; border-radius: 12px; font-size: 0.9rem;
+            box-shadow: 0 4px 10px rgba(0, 61, 124, 0.2);
+        }
+        .btn-login:hover { background: #002d5c !important; transform: translateY(-1px); }
     </style>
 </head>
 <body>
-    <header>
+    <header class="navbar-custom">
         <div class="logo-box">
-            <img src="~/images/Logo.jpg" />
+            <a asp-controller="Product" asp-action="Index">
+                <img src="~/images/Logo.jpg" alt="Sirin Logo" />
+            </a>
         </div>
-        <nav class="nav-cust">
-            <a asp-controller="Product" asp-action="Index">🏠 หน้าแรก</a>
-            <a asp-controller="Product" asp-action="ProductList">🛠️ สินค้าทั้งหมด</a>
-            <a asp-controller="Product" asp-action="Cart">🛒 ตะกร้า <span class="cart-badge">0</span></a>
-            <a asp-controller="Product" asp-action="MyOrders">📜 ประวัติสั่งซื้อ</a>
-            <a asp-controller="Account" asp-action="Login" style="color: var(--cust-blue);">Login / Register</a>
+        <nav class="nav-links">
+            <a asp-action="Index" class="active">หน้าแรก</a>
+            <a asp-action="ProductList">สินค้าทั้งหมด</a>
+            <a asp-action="MyOrders">ประวัติการสั่งซื้อ</a>
+            <a asp-action="Cart" class="cart-icon">
+                <i class="bi bi-cart3"></i>
+                <span class="cart-badge">0</span>
+            </a>
+            <a asp-controller="Account" asp-action="Login" class="btn-login">เข้าสู่ระบบ</a>
         </nav>
     </header>
 
-    <main style="padding: 20px 10%; min-height: 70vh;">
+    <main>
         @RenderBody()
     </main>
 
-    <div class="footer">
-        &copy; 2026 Sirin Engineering Co., Ltd. | Quality Tools for Professional Engineers
-    </div>
+    <footer style="background: #fdfdfd; padding: 60px 8% 30px; border-top: 1px solid #eee; margin-top: 100px;">
+        <div style="text-align: center; color: #aaa; font-size: 0.85rem;">
+            <img src="~/images/Logo.jpg" style="height: 30px; filter: grayscale(1); opacity: 0.5; mb-3" /><br>
+            &copy; 2026 Sirin Engineering Co., Ltd. <br>
+            <span style="letter-spacing: 1px;">QUALITY TOOLS FOR PROFESSIONAL ENGINEERS</span>
+        </div>
+    </footer>
 </body>
 </html>

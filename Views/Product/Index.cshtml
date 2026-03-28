@@ -1,6 +1,181 @@
+@model IEnumerable<SirinEngineering.Models.db.ProductModel>
 @{
     Layout = "~/Views/Shared/Layout/_CustomerLayout.cshtml";
+    var categories = ViewBag.Categories as List<SirinEngineering.Models.db.CategoryModel>;
 }
 
-<h1>Product Index</h1>
-<p>Welcome to the product index page. Here you can browse our products.</p>
+@* ไอคอน Bootstrap *@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<style>
+    :root { --sirin-blue: #003D7C; --bg-gray: #fdfdfd; }
+    body { background-color: var(--bg-gray); }
+
+    /* คุมระยะห่างเนื้อหา จัดให้อยู่กึ่งกลาง */
+    .content-wrapper {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    /* Banner */
+    .hero-banner {
+        background: linear-gradient(135deg, var(--sirin-blue) 0%, #0056b3 100%);
+        border-radius: 24px; color: white; padding: 60px 40px; margin: 30px 0 50px;
+        box-shadow: 0 10px 25px rgba(0,61,124,0.12);
+    }
+
+    .section-header { 
+        border-left: 6px solid var(--sirin-blue); 
+        padding-left: 15px; margin-bottom: 30px; 
+        font-weight: 800; color: var(--sirin-blue); 
+    }
+
+    /* --- CSS Grid หมวดหมู่ (แถวละ 5) --- */
+    .category-grid { 
+        display: grid; 
+        grid-template-columns: repeat(5, 1fr); 
+        gap: 20px; 
+        margin-bottom: 60px; 
+    }
+    .cat-card {
+        background: #fff; border: 1px solid #eee; border-radius: 18px;
+        padding: 30px 10px; text-align: center; transition: 0.2s;
+        text-decoration: none; color: #333; display: block;
+    }
+    .cat-card:hover { border-color: var(--sirin-blue); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+    .cat-icon { font-size: 2.2rem; color: var(--sirin-blue); margin-bottom: 12px; display: block; }
+
+    /* --- CSS Grid สินค้า (แถวละ 4) --- */
+    .product-grid { 
+        display: grid; 
+        grid-template-columns: repeat(4, 1fr); 
+        gap: 20px; 
+    }
+    .p-card {
+        background: #fff; border: 1px solid #f2f2f2; border-radius: 20px;
+        padding: 20px; display: flex; flex-direction: column; transition: 0.2s;
+    }
+    /* ไม่เด้งแล้ว เปลี่ยนแค่สีขอบตอนชี้ */
+    .p-card:hover { border-color: var(--sirin-blue); }
+    
+    .p-img { height: 160px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; }
+    .p-img img { max-height: 100%; max-width: 100%; object-fit: contain; }
+    
+    .p-name { font-weight: 700; font-size: 1rem; color: #333; height: 45px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; margin-bottom: 15px; }
+    .p-price { color: var(--sirin-blue); font-size: 1.4rem; font-weight: 800; margin-bottom: 0; }
+
+    /* --- ดีไซน์ QTY แบบใหม่ [ - | 1 | + ] --- */
+    .qty-wrapper {
+        display: flex; align-items: center; background: #f0f2f5; 
+        border-radius: 8px; border: 1px solid #e4e4e4; overflow: hidden; height: 35px;
+    }
+    .qty-btn {
+        background: transparent; border: none; color: #555; height: 100%;
+        padding: 0 12px; font-weight: bold; cursor: pointer; transition: 0.2s;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .qty-btn:hover { background: #e2e6ea; }
+    .qty-input {
+        border: none; background: transparent; text-align: center; 
+        width: 35px; height: 100%; font-weight: bold; font-size: 0.95rem; outline: none;
+        -moz-appearance: textfield; padding: 0;
+    }
+    .qty-input::-webkit-outer-spin-button,
+    .qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+    .btn-buy { background: var(--sirin-blue); color: #fff; border: none; width: 100%; padding: 12px; border-radius: 12px; font-weight: 700; transition: 0.2s; margin-top: 15px; }
+    .btn-buy:hover { background: #002d5c; }
+
+    /* --- ปุ่มดูทั้งหมด ขวาล่าง --- */
+    .btn-view-all {
+        border: 2px solid var(--sirin-blue); color: var(--sirin-blue);
+        border-radius: 50px; padding: 10px 35px; font-weight: 800; transition: 0.2s;
+        text-decoration: none; display: inline-flex; align-items: center; float: right;
+    }
+    .btn-view-all:hover { background: var(--sirin-blue); color: #fff; }
+
+    /* Responsive */
+    @@media (max-width: 992px) {
+        .category-grid { grid-template-columns: repeat(3, 1fr); }
+        .product-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @@media (max-width: 576px) {
+        .category-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .product-grid { grid-template-columns: repeat(1, 1fr); }
+    }
+</style>
+
+<div class="content-wrapper pb-5">
+    <div class="hero-banner shadow-sm">
+        <h1 class="display-4 fw-bold">Sirin Engineering</h1>
+        <p class="fs-5 opacity-75">Professional Hardware & Tools Solutions</p>
+    </div>
+
+    <div class="section-header"><h4>เลือกซื้อตามหมวดหมู่</h4></div>
+    <div class="category-grid">
+        @if (categories != null)
+        {
+            int iconIndex = 1;
+            foreach (var cat in categories)
+            {
+                <a asp-action="ProductList" asp-route-categoryId="@cat.C_CategoryID" class="cat-card shadow-sm">
+                    <i class="bi @(
+                        iconIndex == 1 ? "bi-tools" : 
+                        iconIndex == 2 ? "bi-lightning-charge" : 
+                        iconIndex == 3 ? "bi-box-seam" : 
+                        iconIndex == 4 ? "bi-droplet" : 
+                        iconIndex == 5 ? "bi-nut" : 
+                        iconIndex == 6 ? "bi-plug" : 
+                        iconIndex == 7 ? "bi-shield-check" : 
+                        iconIndex == 8 ? "bi-safe" : 
+                        iconIndex == 9 ? "bi-paint-bucket" : 
+                        iconIndex == 10 ? "bi-gear-wide" : "bi-box"
+                    ) cat-icon"></i>
+                    <div class="fw-bold small text-truncate px-2">@cat.C_CategoryName</div>
+                </a>
+                iconIndex = iconIndex >= 10 ? 1 : iconIndex + 1;
+            }
+        }
+    </div>
+
+    <div class="section-header"><h4>สินค้าแนะนำสำหรับคุณ</h4></div>
+
+    <div class="product-grid">
+        @foreach (var item in Model)
+        {
+            <div class="p-card shadow-sm">
+                <div class="p-img">
+                    <img src="~/images/products/@(string.IsNullOrEmpty(item.PD_ProductImage) ? "no-image.png" : item.PD_ProductImage)" 
+                         onerror="this.src='/images/products/no-image.png'" />
+                </div>
+                
+                <div class="small text-muted mb-1">@item.PD_Brand</div>
+                <div class="p-name">@item.PD_ProductName</div>
+
+                <form asp-action="AddToCart" method="post" class="mt-auto">
+                    <input type="hidden" name="productId" value="@item.PD_ProductID" />
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 15px;">
+                        <div class="p-price" style="margin: 0;">฿@item.PD_Price.ToString("N0")</div>
+                        <div class="qty-wrapper">
+                            <button type="button" class="qty-btn" onclick="this.parentNode.querySelector('input[type=number]').stepDown()">-</button>
+                            <input type="number" name="qty" value="1" min="1" class="qty-input" />
+                            <button type="button" class="qty-btn" onclick="this.parentNode.querySelector('input[type=number]').stepUp()">+</button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-buy">
+                        <i class="bi bi-cart-plus me-1"></i> ใส่ตะกร้า
+                    </button>
+                </form>
+            </div>
+        }
+    </div>
+    <br>
+    <div class="d-flex justify-content-end mt-4 mb-2">
+        <a asp-action="ProductList" class="btn-view-all shadow-sm">
+            ดูสินค้าทั้งหมด <i class="bi bi-arrow-right ms-2"></i>
+        </a>
+    </div>
+</div>

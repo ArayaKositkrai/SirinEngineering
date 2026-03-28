@@ -187,3 +187,4 @@ C:\Users\USER\Desktop\Project402\SirinEngineering\obj\Debug\net10.0\refint\Sirin
 C:\Users\USER\Desktop\Project402\SirinEngineering\obj\Debug\net10.0\SirinEngineering.pdb
 C:\Users\USER\Desktop\Project402\SirinEngineering\obj\Debug\net10.0\SirinEngineering.genruntimeconfig.cache
 C:\Users\USER\Desktop\Project402\SirinEngineering\obj\Debug\net10.0\ref\SirinEngineering.dll
+C:\Users\USER\Desktop\Project402\SirinEngineering\bin\Debug\net10.0\Newtonsoft.Json.dll
