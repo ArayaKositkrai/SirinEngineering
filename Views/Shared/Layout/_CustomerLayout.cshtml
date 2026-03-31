@@ -1,3 +1,6 @@
+@{
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -29,6 +32,7 @@
         
         /* Cart Badge Styling */
         .cart-icon { position: relative; font-size: 1.2rem; color: #333; }
+        .cart-icon.active { color: var(--sirin-blue); }
         .cart-badge { 
             position: absolute; top: -8px; right: -12px;
             background: #ff4d4f; color: white; padding: 2px 6px; 
@@ -52,13 +56,15 @@
             </a>
         </div>
         <nav class="nav-links">
-            <a asp-action="Index" class="active">หน้าแรก</a>
-            <a asp-action="ProductList">สินค้าทั้งหมด</a>
-            <a asp-action="MyOrders">ประวัติการสั่งซื้อ</a>
-            <a asp-action="Cart" class="cart-icon">
+            <a asp-controller="Product" asp-action="Index" class="@(currentAction == "Index" ? "active" : "")">หน้าแรก</a>
+            <a asp-controller="Product" asp-action="ProductList" class="@(currentAction == "ProductList" ? "active" : "")">สินค้าทั้งหมด</a>
+            <a asp-controller="Product" asp-action="MyOrders" class="@(currentAction == "MyOrders" ? "active" : "")">ประวัติการสั่งซื้อ</a>
+            
+            <a asp-controller="Product" asp-action="Cart" class="cart-icon @(currentAction == "Cart" ? "active" : "")">
                 <i class="bi bi-cart3"></i>
                 <span class="cart-badge">0</span>
             </a>
+            
             <a asp-controller="Account" asp-action="Login" class="btn-login">เข้าสู่ระบบ</a>
         </nav>
     </header>
@@ -69,7 +75,7 @@
 
     <footer style="background: #fdfdfd; padding: 60px 8% 30px; border-top: 1px solid #eee; margin-top: 100px;">
         <div style="text-align: center; color: #aaa; font-size: 0.85rem;">
-            <img src="~/images/Logo.jpg" style="height: 30px; filter: grayscale(1); opacity: 0.5; mb-3" /><br>
+            <img src="~/images/Logo.jpg" style="height: 30px; filter: grayscale(1); opacity: 0.5; margin-bottom: 15px;" /><br>
             &copy; 2026 Sirin Engineering Co., Ltd. <br>
             <span style="letter-spacing: 1px;">QUALITY TOOLS FOR PROFESSIONAL ENGINEERS</span>
         </div>

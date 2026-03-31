@@ -1,5 +1,188 @@
 @{
     Layout = "~/Views/Shared/Layout/_CustomerLayout.cshtml";
+    var categories = ViewBag.Categories as List<SirinEngineering.Models.db.CategoryModel>;
+    var currentCategoryId = ViewBag.CurrentCategory as int?;
 }
 
 @model IEnumerable<SirinEngineering.Models.db.ProductModel>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<style>
+    :root { --sirin-blue: #003D7C; --bg-gray: #fdfdfd; }
+    body { background-color: var(--bg-gray); }
+
+    .content-wrapper { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+
+    .section-header { 
+        border-left: 6px solid var(--sirin-blue); 
+        padding-left: 15px; margin-bottom: 25px; 
+        font-weight: 800; color: var(--sirin-blue); 
+    }
+
+    /* --- คอนเทนเนอร์สำหรับปุ่มเลื่อนและแถบแคปซูล --- */
+    .slider-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 30px;
+        gap: 15px; /* ระยะห่างระหว่างปุ่มลูกศรกับกล่องแคปซูล */
+        width: 100%;
+    }
+
+    /* ปุ่มลูกศร ซ้าย-ขวา */
+    .slider-btn {
+        background: #fff; border: 1px solid #e0e0e0; border-radius: 50%;
+        width: 40px; height: 40px; 
+        flex-shrink: 0; /* สำคัญมาก: บังคับไม่ให้ปุ่มโดนบีบจนเบี้ยวหรือตกบรรทัด */
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; color: var(--sirin-blue);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: 0.2s;
+    }
+    .slider-btn:hover { background: var(--sirin-blue); color: #fff; border-color: var(--sirin-blue); }
+
+    /* --- แถบหมวดหมู่แคปซูลแนวนอน --- */
+    .category-scroll-wrapper {
+        display: flex; 
+        align-items: center; /* ล็อกแคปซูลให้อยู่กึ่งกลางแนวตั้งเสมอ */
+        overflow-x: auto; 
+        gap: 12px;
+        padding: 5px 0; 
+        scroll-behavior: smooth; 
+        scrollbar-width: none; -ms-overflow-style: none; 
+        flex: 1; /* ขยายเต็มพื้นที่ตรงกลาง */
+        min-width: 0; /* สำคัญสุด: ป้องกันไม่ให้แคปซูลยาวจนดันกล่องแตกไปทับปุ่ม */
+    }
+    .category-scroll-wrapper::-webkit-scrollbar { display: none; }
+
+    .cat-pill {
+        display: inline-block;
+        padding: 10px 24px;
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 50px;
+        color: #555;
+        font-weight: 600;
+        text-decoration: none;
+        white-space: nowrap; /* ห้ามตัดคำขึ้นบรรทัดใหม่ */
+        transition: 0.2s;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    }
+    .cat-pill:hover { border-color: var(--sirin-blue); color: var(--sirin-blue); }
+    
+    /* สไตล์ปุ่มเมื่อถูกเลือก (Active) */
+    .cat-pill.active {
+        background: var(--sirin-blue);
+        color: #fff;
+        border-color: var(--sirin-blue);
+        box-shadow: 0 4px 10px rgba(0,61,124,0.15);
+    }
+
+    /* --- Grid สินค้า (แถวละ 4 เหมือนหน้า Index เป๊ะๆ) --- */
+    .product-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    
+    .p-card { background: #fff; border: 1px solid #f2f2f2; border-radius: 20px; padding: 20px; display: flex; flex-direction: column; transition: 0.2s; }
+    .p-card:hover { border-color: var(--sirin-blue); }
+    
+    .p-img { height: 160px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; }
+    .p-img img { max-height: 100%; max-width: 100%; object-fit: contain; }
+    
+    .p-name { font-weight: 700; font-size: 1rem; color: #333; height: 45px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; margin-bottom: 15px; }
+    
+    /* ราคา & QTY */
+    .p-price { color: var(--sirin-blue); font-size: 1.4rem; font-weight: 800; margin: 0; }
+    .qty-wrapper { display: flex; align-items: center; background: #f0f2f5; border-radius: 8px; border: 1px solid #e4e4e4; overflow: hidden; height: 35px; }
+    .qty-btn { background: transparent; border: none; color: #555; height: 100%; padding: 0 12px; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+    .qty-btn:hover { background: #e2e6ea; }
+    .qty-input { border: none; background: transparent; text-align: center; width: 35px; height: 100%; font-weight: bold; font-size: 0.95rem; outline: none; -moz-appearance: textfield; padding: 0; }
+    .qty-input::-webkit-outer-spin-button, .qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+    .btn-buy { background: var(--sirin-blue); color: #fff; border: none; width: 100%; padding: 12px; border-radius: 12px; font-weight: 700; transition: 0.2s; margin-top: 15px; }
+    .btn-buy:hover { background: #002d5c; }
+
+    /* Responsive */
+    @@media (max-width: 992px) { .product-grid { grid-template-columns: repeat(3, 1fr); } }
+    @@media (max-width: 768px) { .product-grid { grid-template-columns: repeat(2, 1fr); } }
+    @@media (max-width: 576px) { .product-grid { grid-template-columns: repeat(1, 1fr); } }
+</style>
+
+<div class="content-wrapper pb-5">
+    
+    <div class="section-header">
+        <h3 class="mb-0">
+            @(currentCategoryId == null ? "สินค้าทั้งหมด" : categories.FirstOrDefault(c => c.C_CategoryID == currentCategoryId)?.C_CategoryName)
+        </h3>
+    </div>
+
+    <div class="slider-container">
+        <button class="slider-btn" onclick="document.getElementById('cat-scroll').scrollBy({ left: -200, behavior: 'smooth' })">
+            <i class="bi bi-chevron-left"></i>
+        </button>
+
+        <div class="category-scroll-wrapper" id="cat-scroll">
+            <a asp-action="ProductList" asp-route-categoryId="" class="cat-pill @(currentCategoryId == null ? "active" : "")">
+                ทั้งหมด
+            </a>
+            
+            @if (categories != null)
+            {
+                foreach (var cat in categories)
+                {
+                    <a asp-action="ProductList" asp-route-categoryId="@cat.C_CategoryID" 
+                       class="cat-pill @(currentCategoryId == cat.C_CategoryID ? "active" : "")">
+                        @cat.C_CategoryName
+                    </a>
+                }
+            }
+        </div>
+
+        <button class="slider-btn" onclick="document.getElementById('cat-scroll').scrollBy({ left: 200, behavior: 'smooth' })">
+            <i class="bi bi-chevron-right"></i>
+        </button>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5 my-5">
+            <i class="bi bi-box-seam text-muted" style="font-size: 5rem; opacity: 0.5;"></i>
+            <h4 class="mt-4 text-muted">ยังไม่มีสินค้าในหมวดหมู่นี้</h4>
+            <p class="text-muted">โปรดเลือกหมวดหมู่ใหม่อีกครั้ง</p>
+        </div>
+    }
+    else
+    {
+        <div class="product-grid">
+            @foreach (var item in Model)
+            {
+                <div class="p-card shadow-sm">
+                    <div class="p-img">
+                        <img src="~/images/products/@(string.IsNullOrEmpty(item.PD_ProductImage) ? "no-image.png" : item.PD_ProductImage)" 
+                             onerror="this.src='/images/products/no-image.png'" />
+                    </div>
+                    
+                    <div class="small text-muted mb-1">@item.PD_Brand</div>
+                    <div class="p-name">@item.PD_ProductName</div>
+
+                    <form asp-action="AddToCart" method="post" class="mt-auto">
+                        <input type="hidden" name="productId" value="@item.PD_ProductID" />
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <div class="p-price">฿@item.PD_Price.ToString("N0")</div>
+                            
+                            <div class="qty-wrapper">
+                                <button type="button" class="qty-btn" onclick="this.parentNode.querySelector('input[type=number]').stepDown()">-</button>
+                                <input type="number" name="qty" value="1" min="1" class="qty-input" />
+                                <button type="button" class="qty-btn" onclick="this.parentNode.querySelector('input[type=number]').stepUp()">+</button>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-buy">
+                            <i class="bi bi-cart-plus me-1"></i> ใส่ตะกร้า
+                        </button>
+                    </form>
+                </div>
+            }
+        </div>
+    }
+
+</div>
