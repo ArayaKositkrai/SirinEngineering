@@ -30,30 +30,43 @@ public class ProductController : Controller
     }
 
     public IActionResult ProductList(int? categoryId)
-{
-    // 1. ดึงหมวดหมู่ทั้งหมดไปแสดงที่ Sidebar ด้านซ้าย
-    ViewBag.Categories = _db.TBL_Category.ToList();
-
-    // 2. ดึงสินค้าทั้งหมดเตรียมไว้
-    var products = _db.TBL_Product.AsQueryable();
-
-    // 3. เช็คว่าลูกค้ากดเลือกหมวดหมู่มาหรือไม่ (มีค่า categoryId ส่งมาไหม)
-    if (categoryId.HasValue && categoryId > 0)
     {
-        // ถ้ามี ให้กรองเอาเฉพาะสินค้าที่ตรงกับหมวดหมู่นั้น
-        products = products.Where(p => p.PD_CategoryID == categoryId);
-        
-        // เก็บค่าหมวดหมู่ปัจจุบันไว้ เพื่อไปทำไฮไลท์สีในหน้าเว็บ
-        ViewBag.CurrentCategory = categoryId;
-    }
+        // 1. ดึงหมวดหมู่ทั้งหมดไปแสดงที่ Sidebar ด้านซ้าย
+        ViewBag.Categories = _db.TBL_Category.ToList();
 
-    // 4. ส่งข้อมูลสินค้าที่กรองแล้ว (หรือทั้งหมด) ไปที่หน้า View
-    return View(products.ToList());
-}
+        // 2. ดึงสินค้าทั้งหมดเตรียมไว้
+        var products = _db.TBL_Product.AsQueryable();
+
+        // 3. เช็คว่าลูกค้ากดเลือกหมวดหมู่มาหรือไม่ (มีค่า categoryId ส่งมาไหม)
+        if (categoryId.HasValue && categoryId > 0)
+        {
+            // ถ้ามี ให้กรองเอาเฉพาะสินค้าที่ตรงกับหมวดหมู่นั้น
+            products = products.Where(p => p.PD_CategoryID == categoryId);
+
+            // เก็บค่าหมวดหมู่ปัจจุบันไว้ เพื่อไปทำไฮไลท์สีในหน้าเว็บ
+            ViewBag.CurrentCategory = categoryId;
+        }
+
+        // 4. ส่งข้อมูลสินค้าที่กรองแล้ว (หรือทั้งหมด) ไปที่หน้า View
+        return View(products.ToList());
+    }
 
     public IActionResult Cart()
     {
         return View();
+    }
+
+    [HttpPost]
+    public IActionResult Cart(int productId, int qty)
+    {
+        // ถ้ายังไม่ได้ Login ให้เด้งไปหน้า Login (ซึ่งหน้า Login มีแท็บ Register ให้ด้วย)
+        if (!User.Identity.IsAuthenticated)
+        {
+            return RedirectToAction("Login", "Account");
+        }
+
+        // (โค้ดเพิ่มสินค้าลงตะกร้าของคุณที่เคยเขียนไว้)
+        return RedirectToAction("Cart");
     }
 
     public IActionResult MyOrders()

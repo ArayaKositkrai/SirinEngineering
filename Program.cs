@@ -10,6 +10,10 @@ builder.Services.AddDbContext<projectContext>(options =>
         builder.Configuration.GetConnectionString("DefaultConnection"),
         ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))));
 
+builder.Services.AddAuthentication("MyCookieAuth").AddCookie("MyCookieAuth", options => {
+    options.LoginPath = "/Account/Login"; // ถ้ายังไม่ Login ให้เด้งมาหน้านี้
+});
+
 builder.Services.AddSession();
 var app = builder.Build();
 
@@ -24,6 +28,9 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseSession();
 app.UseRouting();
+
+app.UseAuthentication(); 
+app.UseAuthorization();
 
 app.UseAuthorization();
 

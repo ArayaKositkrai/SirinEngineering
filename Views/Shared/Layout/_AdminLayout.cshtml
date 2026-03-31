@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,89 +10,92 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <style>
             :root {
-                    --sirin-blue: #003D7C;
-                    --sirin-grey: #7F7F7F;
-                }
+                --sirin-blue: #003D7C;
+                --sirin-grey: #7F7F7F;
+            }
 
             .btn-sirin {
-                    background-color: var(--sirin-blue);
-                    color: white;
-                }
+                background-color: var(--sirin-blue);
+                color: white;
+            }
+
             .btn-sirin:hover {
-                    background-color: #002a54;
-                    color: white;
-                }
-                :root {
-                    --admin-blue: #003D7C;
-                    --admin-grey: #4A4A4A;
-                }
+                background-color: #002a54;
+                color: white;
+            }
 
-                body {
-                    margin: 0;
-                    font-family: sans-serif;
-                    display: flex;
-                }
+            :root {
+                --admin-blue: #003D7C;
+                --admin-grey: #4A4A4A;
+            }
 
-                /* Sidebar  */
-                .sidebar {
-                    width: 250px;
-                    height: 100vh;
-                    background: var(--admin-blue);
-                    color: white;
-                    position: fixed;
-                }
+            body {
+                margin: 0;
+                font-family: sans-serif;
+                display: flex;
+            }
 
-                .sidebar-header {
-                    padding: 20px;
-                    text-align: center;
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                }
+            /* Sidebar  */
+            .sidebar {
+                width: 250px;
+                height: 100vh;
+                background: var(--admin-blue);
+                color: white;
+                position: fixed;
+            }
 
-                .sidebar-header img {
-                    width: 80px;
-                }
+            .sidebar-header {
+                padding: 20px;
+                text-align: center;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
 
-                .nav-menu {
-                    list-style: none;
-                    padding: 0;
-                    margin-top: 20px;
-                }
+            .sidebar-header img {
+                width: 80px;
+            }
 
-                .nav-item a {
-                    display: block;
-                    padding: 15px 25px;
-                    color: white;
-                    text-decoration: none;
-                    transition: 0.3s;
-                }
+            .nav-menu {
+                list-style: none;
+                padding: 0;
+                margin-top: 20px;
+            }
 
-                .nav-item a:hover {
-                    background: rgba(255, 255, 255, 0.1);
-                    border-left: 5px solid #fff;
-                }
+            .nav-item a {
+                display: block;
+                padding: 15px 25px;
+                color: white;
+                text-decoration: none;
+                transition: 0.3s;
+            }
 
-                .main-content {
-                    margin-left: 250px;
-                    flex: 1;
-                    background: #f4f4f4;
-                    min-height: 100vh;
-                }
-                .top-bar {
-                    background: white;
-                    padding: 15px 30px;
-                    display: flex;
-                    justify-content: space-between;
-                    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-                }
+            .nav-item a:hover {
+                background: rgba(255, 255, 255, 0.1);
+                border-left: 5px solid #fff;
+            }
 
-                .btn-logout {
-                    color: var(--admin-blue);
-                    text-decoration: none;
-                    font-weight: bold;
-                    border: 1px solid var(--admin-blue);
-                    padding: 5px 15px;
-                    border-radius: 5px;
-                }
+            .main-content {
+                margin-left: 250px;
+                flex: 1;
+                background: #f4f4f4;
+                min-height: 100vh;
+            }
+
+            .top-bar {
+                background: white;
+                padding: 15px 30px;
+                display: flex;
+                justify-content: space-between;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            }
+
+            .btn-logout {
+                color: var(--admin-blue);
+                text-decoration: none;
+                font-weight: bold;
+                border: 1px solid var(--admin-blue);
+                padding: 5px 15px;
+                border-radius: 5px;
+            }
     </style>
 </head>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -103,7 +107,7 @@
             <h4 class="fw-bold mb-0">Admin Panel</h4>
         </div>
 
-                @* <div class="sidebar-header d-flex align-items-center justify-content-between">
+        @* <div class="sidebar-header d-flex align-items-center justify-content-between">
             <div class="d-flex align-items-center gap-2">
                 <img src="~/images/Logo.jpg" alt="Logo" style="height: 36px; width: 36px;" />
                 <h4 class="fw-bold mb-0">Admin Panel</h4>
@@ -121,7 +125,9 @@
     <div class="main-content">
         <div class="top-bar">
             <span style="color: var(--admin-blue); font-weight: bold;">Sirin Engineering System</span>
-            <a asp-controller="Product" asp-action="Index" class="btn-logout">Logout</a>
+            <a asp-controller="Account" asp-action="Logout" class="btn btn-danger">
+                ออกจากระบบ
+            </a>
         </div>
         <div style="padding: 30px;">
             @RenderBody()

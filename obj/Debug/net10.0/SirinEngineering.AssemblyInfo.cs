@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SirinEngineering")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+bacc8dd5ed1a191091997732dce00c21e664b1cc")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+75049eb1c5ea940494842c155b3691d55227ed06")]
 [assembly: System.Reflection.AssemblyProductAttribute("SirinEngineering")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SirinEngineering")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
