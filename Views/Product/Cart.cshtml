@@ -1,5 +1,345 @@
+@model List<SirinEngineering.ViewModels.CartItemViewModel>
 @{
     Layout = "~/Views/Shared/Layout/_CustomerLayout.cshtml";
     var promos = ViewBag.Promotions as List<SirinEngineering.Models.db.PromotionModel>;
 }
 
+<style>
+    :root { --sirin-blue: #003D7C; --bg-gray: #f8fafc; }
+    body { background-color: var(--bg-gray); }
+    .cart-wrapper { max-width: 1200px; margin: 40px auto; padding: 0 20px; font-family: 'Prompt', sans-serif; }
+    
+    .card-box { background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 25px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+
+    /* รายการสินค้า */
+    .cart-item { display: flex; align-items: center; padding: 20px 0; border-bottom: 1px solid #f1f5f9; }
+    .cart-item:last-child { border-bottom: none; }
+    .item-checkbox { width: 22px; height: 22px; cursor: pointer; accent-color: var(--sirin-blue); }
+    .item-img { width: 90px; height: 90px; object-fit: contain; margin: 0 20px; }
+    .item-info { flex-grow: 1; }
+    .item-name { font-weight: 600; font-size: 1.1rem; color: #333; margin-bottom: 5px; }
+    .item-price { color: var(--sirin-blue); font-weight: 700; font-size: 1.1rem; }
+
+    /* ปุ่ม QTY */
+    .qty-wrapper { display: flex; align-items: center; background: #f1f5f9; border-radius: 8px; border: 1px solid #e2e8f0; height: 40px; }
+    .qty-btn { background: transparent; border: none; color: #555; padding: 0 15px; font-weight: bold; font-size: 1.2rem; cursor: pointer; transition: 0.2s; }
+    .qty-btn:hover { background: #e2e8f0; }
+    .qty-input { border: none; background: transparent; text-align: center; width: 45px; font-weight: bold; font-size: 1rem; pointer-events: none; }
+
+    .item-subtotal { font-weight: 700; width: 120px; text-align: right; font-size: 1.1rem; margin: 0 20px; }
+    
+    /* ปุ่มลบ */
+    .btn-delete { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; color: #ef4444; cursor: pointer; }
+    .btn-delete:hover { color: #ef4444; transform: scale(1.05); }
+
+    /* ปรับแต่งปุ่มดำเนินการสั่งซื้อ */
+    .btn-checkout { background: var(--sirin-blue); color: white; border: none; width: 100%; padding: 16px; border-radius: 8px; font-weight: bold; font-size: 1.2rem; transition: 0.3s; margin-top: 20px; }
+    .btn-checkout:hover:not(:disabled) { background: #002d5c; transform: translateY(-2px); box-shadow: 0 8px 15px rgba(0,61,124,0.2); }
+    .btn-checkout:disabled { background: #cbd5e1; cursor: not-allowed; }
+</style>
+
+<div class="cart-wrapper pb-5">
+    <h3 class="fw-bold mb-4" style="border-left: 6px solid var(--sirin-blue); padding-left: 15px; color: #003D7C;">ตะกร้าสินค้า</h3>
+
+    <form asp-action="ProceedToCheckout" method="post" id="cartForm">
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <div class="card-box">
+                    @if (Model == null || Model.Count == 0)
+                    {
+                        <div class="text-center py-5">
+                            <h4 class="text-muted fw-bold">ตะกร้าว่างเปล่า</h4>
+                            <a asp-action="ProductList" class="btn btn-primary mt-3 px-4 py-2 rounded-pill">ไปเลือกซื้อสินค้า</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex align-items-center mb-4 pb-3 border-bottom">
+                            <input class="form-check-input item-checkbox me-3" type="checkbox" id="selectAll" checked style="width: 22px; height: 22px;">
+                            <label for="selectAll" class="fw-bold fs-5 mb-0 cursor-pointer">เลือกทั้งหมด</label>
+                        </div>
+
+                        @for (int i = 0; i < Model.Count; i++)
+                        {
+                            <div class="cart-item" data-price="@Model[i].Price" data-cat="@Model[i].CategoryId">
+                                <input type="hidden" name="ProductIds" value="@Model[i].ProductId" />
+                                <input class="form-check-input item-checkbox" type="checkbox" name="SelectedProducts" value="@Model[i].ProductId" checked>
+                                
+                                <img src="~/images/products/@(Model[i].Image ?? "no-image.png")" class="item-img" />
+                                
+                                <div class="item-info">
+                                    <div class="item-name">@Model[i].ProductName</div>
+                                    <div class="item-price">฿@Model[i].Price.ToString("N0")</div>
+                                </div>
+                                
+                                <div class="qty-wrapper">
+                                    <button type="button" class="qty-btn minus"><i class="bi bi-dash"></i></button>
+                                    <input type="number" name="Quantities" class="qty-input item-qty" value="@Model[i].Quantity" min="1" readonly>
+                                    <button type="button" class="qty-btn plus"><i class="bi bi-plus"></i></button>
+                                </div>
+
+                                <div class="item-subtotal">
+                                    ฿<span class="row-total">@((Model[i].Price * Model[i].Quantity).ToString("N0"))</span>
+                                </div>
+
+                                <a asp-action="RemoveFromCart" asp-route-id="@Model[i].ProductId" class="btn-delete" title="ลบสินค้า">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                @if (Model != null && Model.Count > 0)
+                {
+                    <div style="position: sticky; top: 100px; padding: 10px;">
+                        <h4 class="fw-bold mb-4" style="color: #333;">สรุปคำสั่งซื้อ</h4>
+                        
+                        <div class="d-flex align-items-center mb-3 w-100">
+                            <label class="fw-bold text-muted mb-0" style="width: 45%; font-size: 0.95rem;">รูปแบบการจัดส่ง</label>
+                            <select name="ShippingMethod" id="shippingMethod" class="form-select text-dark fw-bold" style="width: 55%; border-radius: 8px; font-size: 0.9rem; padding: 8px 12px; border: 1px solid #cbd5e1;">
+                                <option value="Delivery">จัดส่งถึงบ้าน (150฿ / ซื้อครบ 2,000฿ ส่งฟรี)</option>
+                                <option value="Pickup">รับที่ร้าน (ฟรี)</option>
+                            </select>
+                        </div>
+
+                        <div class="d-flex align-items-center mb-1 w-100">
+                            <label class="fw-bold text-muted mb-0" style="width: 45%; font-size: 0.95rem;">โปรโมชั่น / ส่วนลด</label>
+                            <select name="PromoId" id="promoSelect" class="form-select text-dark fw-bold" style="width: 55%; border-radius: 8px; font-size: 0.9rem; padding: 8px 12px; border: 1px solid #cbd5e1;">
+                                <option value="" data-type="None">-- ไม่ใช้ส่วนลด --</option>
+                                @if (promos != null)
+                                {
+                                    foreach (var promo in promos)
+                                    {
+                                        <option value="@promo.PM_PromotionID" 
+                                                data-type="@promo.PM_PromoType" 
+                                                data-min-spend="@(promo.PM_MinSpend ?? 0)"
+                                                data-min-qty="@(promo.PM_MinQuantity ?? 0)"
+                                                data-val="@(promo.PM_DiscountValue ?? 0)"
+                                                data-cat="@(promo.PM_TargetCategoryID ?? 0)"
+                                                data-free-qty="@(promo.PM_FreeQuantity ?? 0)">
+                                            @promo.PM_PromotionName
+                                        </option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                            <br>
+                        <div class="text-end mb-4 ">
+                            <div class="promo-warning" id="promoWarning" style="display: none; color: #dc3545; font-size: 0.85rem; font-weight: 600; margin-top: 5px;"></div>
+                        </div>
+                            
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; width: 100%; border-top: 1px dashed #cbd5e1;">
+                            <span style="font-weight: bold; color: #475569; font-size: 1.05rem; text-align: left;">ยอดรวมสินค้า</span>
+                            <span id="subTotal" style="font-weight: bold; color: #1e293b; font-size: 1.15rem; text-align: right;">฿0</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; width: 100%;">
+                            <span style="font-weight: bold; color: #475569; font-size: 1.05rem; text-align: left;">ค่าจัดส่ง</span>
+                            <span id="shippingFee" style="font-weight: bold; color: #1e293b; font-size: 1.15rem; text-align: right;">฿150</span>
+                        </div>
+
+                        <div id="discountRow" style="display: none !important; justify-content: space-between; align-items: center; margin-bottom: 12px; width: 100%; color: var(--sirin-blue);">
+                            <span style="font-weight: bold; font-size: 1.05rem; text-align: left;">ส่วนลด</span>
+                            <span id="discountVal" style="font-weight: bold; font-size: 1.15rem; text-align: right;">-฿0</span>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 25px; padding-top: 20px; border-top: 1px solid #cbd5e1; width: 100%;">
+                            <span style="font-weight: 900; color: #1e293b; font-size: 1.4rem; padding-bottom: 5px; text-align: left;">ยอดสุทธิ</span>
+                            <span id="grandTotal" style="font-weight: 900; font-size: 2.5rem; color: var(--sirin-blue); text-align: right; line-height: 1;">฿0</span>
+                        </div>
+
+                        <button type="submit" class="btn-checkout w-100 mt-4" id="checkoutBtn">
+                            ดำเนินการสั่งซื้อ
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const checkboxes = document.querySelectorAll('.item-checkbox:not(#selectAll)');
+        const selectAll = document.getElementById('selectAll');
+        const shippingSelect = document.getElementById('shippingMethod');
+        const promoSelect = document.getElementById('promoSelect');
+        const promoWarning = document.getElementById('promoWarning');
+        const discountRow = document.getElementById('discountRow');
+        const discountVal = document.getElementById('discountVal');
+
+        function updateSummary() {
+            let subtotal = 0;
+            let selectedCount = 0;
+            let cartItemsData = []; 
+
+            // 1. กวาดข้อมูลจากตะกร้า
+            document.querySelectorAll('.cart-item').forEach(item => {
+                const cb = item.querySelector('.item-checkbox');
+                const price = parseFloat(item.getAttribute('data-price'));
+                const qtyInput = item.querySelector('.item-qty');
+                const qty = parseInt(qtyInput.value) || 1;
+                const cat = parseInt(item.getAttribute('data-cat'));
+                
+                const rowTotalSpan = item.querySelector('.row-total');
+                if (rowTotalSpan) rowTotalSpan.innerText = (price * qty).toLocaleString();
+
+                if (cb.checked) {
+                    subtotal += (price * qty);
+                    selectedCount++;
+                    cartItemsData.push({ price: price, qty: qty, cat: cat, total: price * qty });
+                }
+            });
+
+            if(selectAll) selectAll.checked = (selectedCount === checkboxes.length && checkboxes.length > 0);
+
+            // 2. คำนวณค่าส่ง
+            let shipping = 0;
+            if (shippingSelect && shippingSelect.value === "Delivery" && subtotal > 0) {
+                shipping = subtotal >= 2000 ? 0 : 150;
+            }
+
+            // 3. คำนวณโปรโมชั่น
+            let finalDiscount = 0;
+            let isPromoValid = true;
+            let warningMsg = "";
+
+            if (promoSelect) {
+                const selectedPromo = promoSelect.options[promoSelect.selectedIndex];
+                const promoType = selectedPromo.getAttribute('data-type');
+                
+                if (promoType === 'None' || selectedCount === 0) {
+                    finalDiscount = 0;
+                    isPromoValid = true; 
+                } else {
+                    const minSpend = parseFloat(selectedPromo.getAttribute('data-min-spend')) || 0;
+                    const rawMinQty = parseInt(selectedPromo.getAttribute('data-min-qty')) || 0;
+                    const rawFreeQty = parseInt(selectedPromo.getAttribute('data-free-qty')) || 0;
+                    
+                    const minQty = rawMinQty > 0 ? rawMinQty : 1; 
+                    const freeQty = rawFreeQty > 0 ? rawFreeQty : 1; 
+                    
+                    const discountValue = parseFloat(selectedPromo.getAttribute('data-val')) || 0;
+                    const targetCat = parseInt(selectedPromo.getAttribute('data-cat')) || 0;
+
+                    if (promoType === 'BuyGetFree' || promoType === 'FreeItem') {
+                        let requiredQty = minQty + freeQty; 
+                        let eligibleItems = cartItemsData.filter(item => item.qty >= requiredQty);
+
+                        if (eligibleItems.length > 0) {
+                            eligibleItems.sort((a, b) => a.price - b.price); 
+                            let targetItem = eligibleItems[0];
+                            let freeSets = Math.floor(targetItem.qty / requiredQty); 
+                            finalDiscount = freeSets * freeQty * targetItem.price;
+                        } else {
+                            isPromoValid = false;
+                            warningMsg = `*ไม่ตรงตามเงื่อนไข (ต้องซื้อสินค้าชนิดเดียวกันอย่างน้อย ${requiredQty} ชิ้น)`;
+                        }
+
+                    } else if (promoType === 'MinQty') {
+                        let hasEligibleItem = cartItemsData.some(item => item.qty >= minQty);
+
+                        if (hasEligibleItem) {
+                            finalDiscount = discountValue;
+                        } else {
+                            isPromoValid = false;
+                            warningMsg = `*ไม่ตรงตามเงื่อนไข (ต้องมีสินค้าอย่างน้อย 1 รายการที่ซื้อครบ ${minQty} ชิ้น)`;
+                        }
+
+                    } else if (promoType === 'CategorySale' || promoType === 'Category') {
+                        let catSubtotal = cartItemsData.filter(item => item.cat === targetCat).reduce((sum, item) => sum + item.total, 0);
+                        
+                        if (catSubtotal > 0) {
+                            if (catSubtotal >= (discountValue + 100)) {
+                                finalDiscount = discountValue;
+                            } else {
+                                isPromoValid = false;
+                                warningMsg = `*ไม่ตรงตามเงื่อนไข (ยอดซื้อในหมวดนี้ต้องมากกว่า ${discountValue + 100} บาท)`;
+                            }
+                        } else {
+                            isPromoValid = false;
+                            warningMsg = "*ไม่ตรงตามเงื่อนไข (ไม่มีสินค้าในหมวดหมู่ที่ร่วมรายการ)";
+                        }
+
+                    } else if (promoType === 'MinSpend') {
+                        if (subtotal >= minSpend) {
+                            finalDiscount = discountValue;
+                        } else {
+                            isPromoValid = false;
+                            warningMsg = `*ไม่ตรงตามเงื่อนไข (ยอดซื้อขั้นต่ำต้องถึง ${minSpend} บาท)`;
+                        }
+
+                    } else if (promoType === 'Discount') {
+                        if (subtotal >= discountValue) {
+                            finalDiscount = discountValue;
+                        } else {
+                            isPromoValid = false;
+                            warningMsg = "*ไม่ตรงตามเงื่อนไข (ยอดซื้อต้องมากกว่าส่วนลด)";
+                        }
+                    }
+                }
+            }
+
+            if (finalDiscount > subtotal) {
+                finalDiscount = subtotal;
+            }
+
+            // แสดงแจ้งเตือน
+            if (promoWarning) {
+                if (!isPromoValid && selectedCount > 0) {
+                    promoWarning.style.display = 'block';
+                    promoWarning.innerText = warningMsg;
+                    finalDiscount = 0; 
+                } else {
+                    promoWarning.style.display = 'none';
+                }
+            }
+
+            // จัดการบรรทัดส่วนลด
+            if (discountRow && discountVal) {
+                if (finalDiscount > 0) {
+                    discountRow.style.setProperty("display", "flex", "important");
+                    discountVal.innerText = '-฿' + finalDiscount.toLocaleString();
+                } else {
+                    discountRow.style.setProperty("display", "none", "important");
+                    finalDiscount = 0;
+                }
+            }
+
+            // 4. สรุปยอดสุทธิ
+            let grandTotal = (subtotal + shipping) - finalDiscount;
+            if (grandTotal < 0) grandTotal = 0;
+
+            const subTotalSpan = document.getElementById('subTotal');
+            if(subTotalSpan) subTotalSpan.innerText = '฿' + subtotal.toLocaleString();
+            
+            const shippingFeeSpan = document.getElementById('shippingFee');
+            if(shippingFeeSpan) shippingFeeSpan.innerText = shipping === 0 && subtotal >= 2000 ? 'ฟรี' : '฿' + shipping;
+            
+            const grandTotalSpan = document.getElementById('grandTotal');
+            if(grandTotalSpan) grandTotalSpan.innerText = '฿' + grandTotal.toLocaleString();
+            
+            const checkoutBtn = document.getElementById('checkoutBtn');
+            if(checkoutBtn) checkoutBtn.disabled = selectedCount === 0;
+        }
+
+        // ผูก Event Listeners
+        document.querySelectorAll('.qty-wrapper').forEach(ctrl => {
+            const input = ctrl.querySelector('.item-qty');
+            const plusBtn = ctrl.querySelector('.plus');
+            const minusBtn = ctrl.querySelector('.minus');
+            
+            if(plusBtn) plusBtn.addEventListener('click', () => { input.value++; updateSummary(); });
+            if(minusBtn) minusBtn.addEventListener('click', () => { if(input.value > 1) { input.value--; updateSummary(); } });
+        });
+
+        if(checkboxes) checkboxes.forEach(cb => cb.addEventListener('change', updateSummary));
+        if(selectAll) selectAll.addEventListener('change', (e) => { checkboxes.forEach(cb => cb.checked = e.target.checked); updateSummary(); });
+        if(shippingSelect) shippingSelect.addEventListener('change', updateSummary);
+        if(promoSelect) promoSelect.addEventListener('change', updateSummary);
+
+        updateSummary();
+    });
+</script>

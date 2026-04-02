@@ -35,8 +35,7 @@
                     <span class="input-group-text bg-white border-0">
                         <i class="bi bi-search text-muted"></i>
                     </span>
-                    <input type="text" name="search" value="@ViewBag.Search" class="search-bar" 
-                           placeholder="ค้นหาชื่อโปรโมชั่น" onchange="this.form.submit()" />
+                    <input type="text" name="search" value="@ViewBag.Search" class="search-bar" placeholder="ค้นหาชื่อโปรโมชั่น" onchange="this.form.submit()" />
                 </div>
             </form>
 
@@ -70,7 +69,7 @@
                 <tbody>
                     @foreach (var item in Model) {
                         <tr>
-                            <td class="ps-4 text-start">
+                             <td class="ps-4 text-start">
                                 <div class="fw-bold">@item.PM_PromotionName</div>
                                 <div class="small text-muted">@item.PM_StartDate.ToString("dd/MM/yy") - @item.PM_EndDate.ToString("dd/MM/yy")</div>
                             </td>
@@ -79,13 +78,11 @@
                                 @if(item.PM_DiscountValue > 0) { <div class="fw-bold text-primary">ลด ฿@item.PM_DiscountValue?.ToString("N0")</div> }
                                 @if(item.PM_FreeQuantity > 0) { <div class="fw-bold text-success">แถม @item.PM_FreeQuantity ชิ้น</div> }
                             </td>
-                            <td>
+                             <td>
                                 <form asp-action="TogglePromotionStatus" method="post">
                                     <input type="hidden" name="id" value="@item.PM_PromotionID" />
-                                    <div class="form-check form-switch d-flex justify-content-center">
-                                        <input class="form-check-input" type="checkbox" role="switch" 
-                                               @(item.PM_IsActive ? "checked" : "") 
-                                               onchange="this.form.submit()">
+                                     <div class="form-check form-switch d-flex justify-content-center">
+                                        <input class="form-check-input" type="checkbox" role="switch" @(item.PM_IsActive ? "checked" : "") onchange="this.form.submit()">
                                     </div>
                                     <div class="small @(item.PM_IsActive ? "text-success" : "text-muted")">
                                         @(item.PM_IsActive ? "Active" : "Inactive")
@@ -94,19 +91,16 @@
                             </td>
                             <td class="text-end pe-4">
                                 <div class="d-flex justify-content-end gap-2">
-                                    <button class="btn btn-light btn-sm rounded-pill px-3 shadow-sm border text-secondary"
-                                            data-bs-toggle="modal" data-bs-target="#editPromoModal-@item.PM_PromotionID">
+                                    <button class="btn btn-light btn-sm rounded-pill px-3 shadow-sm border text-secondary" data-bs-toggle="modal" data-bs-target="#editPromoModal-@item.PM_PromotionID">
                                         แก้ไข
                                     </button>
-
                                     <form asp-action="DeletePromotion" method="post" class="d-inline">
                                         <input type="hidden" name="id" value="@item.PM_PromotionID" />
-                                        <button type="submit" class="btn text-danger"
-                                                onclick="return confirm('คุณแน่ใจหรือไม่ว่าต้องการลบโปรโมชั่นนี้?');">
+                                        <button type="submit" class="btn text-danger" onclick="return confirm('คุณแน่ใจหรือไม่ว่าต้องการลบโปรโมชั่นนี้?');">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </form>
-                                </div>
+                                 </div>
                             </td>
                         </tr>
 
@@ -124,8 +118,7 @@
                                                 <input name="PM_PromotionName" value="@item.PM_PromotionName" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
                                             </div>
 
-                                            @* แสดงช่องกรอกตามประเภทเดิมของมัน *@
-                                            @if(item.PM_PromoType == "Discount" || item.PM_PromoType == "MinSpend" || item.PM_PromoType == "CategorySale") {
+                                            @if(item.PM_PromoType == "Discount" || item.PM_PromoType == "MinSpend" || item.PM_PromoType == "CategorySale" || item.PM_PromoType == "MinQty") {
                                                 <div class="mb-3">
                                                     <label class="small fw-bold text-muted">จำนวนเงินที่ลด (฿)</label>
                                                     <input name="PM_DiscountValue" value="@item.PM_DiscountValue" type="number" class="form-control border-0 bg-light p-3" style="border-radius:12px;" />
@@ -136,6 +129,37 @@
                                                 <div class="mb-3">
                                                     <label class="small fw-bold text-muted">ยอดซื้อขั้นต่ำ (฿)</label>
                                                     <input name="PM_MinSpend" value="@item.PM_MinSpend" type="number" class="form-control border-0 bg-light p-3" style="border-radius:12px;" />
+                                                </div>
+                                            }
+
+                                            @if(item.PM_PromoType == "MinQty" || item.PM_PromoType == "BuyGetFree") {
+                                                <div class="mb-3">
+                                                    <label class="small fw-bold text-muted">ซื้อครบ (ชิ้น)</label>
+                                                    <input name="PM_MinQuantity" value="@item.PM_MinQuantity" type="number" class="form-control border-0 bg-light p-3" style="border-radius:12px;" />
+                                                </div>
+                                            }
+
+                                            @if(item.PM_PromoType == "BuyGetFree") {
+                                                <div class="mb-3">
+                                                    <label class="small fw-bold text-muted">แถมฟรี (ชิ้น)</label>
+                                                    <input name="PM_FreeQuantity" value="@item.PM_FreeQuantity" type="number" class="form-control border-0 bg-light p-3" style="border-radius:12px;" />
+                                                </div>
+                                            }
+                                            
+                                            @if(item.PM_PromoType == "CategorySale") {
+                                                <div class="mb-3">
+                                                    <label class="small fw-bold text-muted">เลือกหมวดหมู่</label>
+                                                    <select name="PM_TargetCategoryID" class="form-select border-0 bg-light p-3" style="border-radius:12px;">
+                                                        @if(categories != null){
+                                                            foreach (var cat in categories) { 
+                                                                if(item.PM_TargetCategoryID == cat.C_CategoryID) {
+                                                                    <option value="@cat.C_CategoryID" selected>@cat.C_CategoryName</option>
+                                                                } else {
+                                                                    <option value="@cat.C_CategoryID">@cat.C_CategoryName</option>
+                                                                }
+                                                            }
+                                                        }
+                                                    </select>
                                                 </div>
                                             }
 
@@ -184,7 +208,7 @@
             <form asp-action="CreatePromotion" method="post">
                 <input type="hidden" name="PM_PromoType" value="Discount" />
                 <div class="modal-body p-4">
-                    <h5 class="fw-bold mb-4">ลดราคาปกติ (Direct)</h5>
+                     <h5 class="fw-bold mb-4">ลดราคาปกติ (Direct)</h5>
                     <div class="mb-3">
                         <label class="small fw-bold text-muted">ชื่อโปรโมชั่น</label>
                         <input name="PM_PromotionName" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
@@ -207,7 +231,7 @@
                     <button type="submit" class="btn btn-sirin w-100 p-3 fw-bold shadow-sm">บันทึกโปรโมชั่น</button>
                 </div>
             </form>
-        </div>
+         </div>
     </div>
 </div>
 
@@ -225,7 +249,7 @@
                     <div class="row mb-3">
                         <div class="col-6">
                             <label class="small fw-bold text-muted">ซื้อครบ (ชิ้น)</label>
-                            <input name="PM_MinQuantity" type="number" min="1" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
+                             <input name="PM_MinQuantity" type="number" min="1" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
                         </div>
                         <div class="col-6">
                             <label class="small fw-bold text-muted">แถมฟรี (ชิ้น)</label>
@@ -246,7 +270,7 @@
                     <button type="submit" class="btn btn-sirin w-100 p-3 fw-bold shadow-sm">บันทึกโปรโมชั่น</button>
                 </div>
             </form>
-        </div>
+         </div>
     </div>
 </div>
 
@@ -264,7 +288,7 @@
                     <div class="row mb-3">
                         <div class="col-6">
                             <label class="small fw-bold text-muted">ยอดซื้อขั้นต่ำ (฿)</label>
-                            <input name="PM_MinSpend" type="number" min="1" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
+                             <input name="PM_MinSpend" type="number" min="1" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
                         </div>
                         <div class="col-6">
                             <label class="small fw-bold text-muted">ส่วนลดที่ได้ (฿)</label>
@@ -285,7 +309,7 @@
                     <button type="submit" class="btn btn-sirin w-100 p-3 fw-bold shadow-sm">บันทึกโปรโมชั่น</button>
                 </div>
             </form>
-        </div>
+         </div>
     </div>
 </div>
 
@@ -303,7 +327,7 @@
                     <div class="row mb-3">
                         <div class="col-6">
                             <label class="small fw-bold text-muted">ซื้อครบ (ชิ้น)</label>
-                            <input name="PM_MinQuantity" type="number" min="1" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
+                             <input name="PM_MinQuantity" type="number" min="1" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
                         </div>
                         <div class="col-6">
                             <label class="small fw-bold text-muted">ส่วนลดที่ได้ (฿)</label>
@@ -324,7 +348,7 @@
                     <button type="submit" class="btn btn-sirin w-100 p-3 fw-bold shadow-sm">บันทึกโปรโมชั่น</button>
                 </div>
             </form>
-        </div>
+         </div>
     </div>
 </div>
 
@@ -365,6 +389,6 @@
                     <button type="submit" class="btn btn-sirin w-100 p-3 fw-bold shadow-sm">บันทึกโปรโมชั่น</button>
                 </div>
             </form>
-        </div>
+         </div>
     </div>
 </div>

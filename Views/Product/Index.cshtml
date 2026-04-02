@@ -158,7 +158,7 @@
                 <div class="small text-muted mb-1">@item.PD_Brand</div>
                 <div class="p-name">@item.PD_ProductName</div>
 
-                <form asp-action="AddToCart" method="post" class="mt-auto">
+                <form asp-controller="Product" asp-action="AddToCart" method="post" class="mt-auto">
                     <input type="hidden" name="productId" value="@item.PD_ProductID" />
                     
                     <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 15px;">
@@ -180,7 +180,7 @@
     <br>
     <div class="d-flex justify-content-end mt-4 mb-2">
         <a asp-action="ProductList" class="btn-view-all shadow-sm">
-            ดูสินค้าทั้งหมด <i class="bi bi-arrow-right ms-2"></i>
+            ดูสินค้าทั้งหมด &nbsp;<i class="bi bi-arrow-right ms-2"></i>
         </a>
     </div>
 </div>

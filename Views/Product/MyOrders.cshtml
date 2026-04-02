@@ -1,5 +1,179 @@
+@model List<SirinEngineering.Models.db.OrderModel>
 @{
     Layout = "~/Views/Shared/Layout/_CustomerLayout.cshtml";
+    ViewData["Title"] = "My Orders";
+
+    // 💡 จัดกลุ่ม (Group) สินค้าที่สั่งในเวลาเดียวกัน (นาทีเดียวกัน) ให้รวมเป็น 1 Order
+    var groupedOrders = Model?
+        .GroupBy(o => new { Date = o.O_OrderDate.ToString("yyyyMMddHHmm"), Type = o.O_PaymentType })
+        .OrderByDescending(g => g.First().O_OrderDate)
+        .ToList() ?? new();
 }
 
-<h1>My Orders</h1>
+<style>
+    .content-wrapper { 
+        max-width: 1200px; 
+        margin: 0 auto; 
+        padding: 40px 20px; 
+    }
+
+    .card-minimal {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        background: white;
+    }
+
+    .table { width: 100%; margin-bottom: 0; }
+
+    .table thead th {
+        border: none;
+        color: #7F7F7F;
+        font-weight: 500;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        padding: 15px;
+    }
+    
+    .table tbody td {
+        padding: 15px;
+        vertical-align: middle;
+    }
+
+    .btn-sirin {
+        background: #003D7C;
+        color: white;
+        border-radius: 12px;
+        transition: 0.3s;
+        border: none;
+        padding: 10px 20px;
+        font-weight: 500;
+    }
+
+    .btn-sirin:hover {
+        background: #002d5c;
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    /* ---------------------------------------------------
+       สไตล์ป้ายสถานะ (มีแค่ 3 สี ตามที่สั่งเป๊ะๆ)
+    -----------------------------------------------------*/
+    .pill-badge {
+        border-radius: 50px;
+        padding: 6px 16px; 
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: inline-block;
+        text-align: center;
+        border: none;
+    }
+    
+    .pill-checking { background-color: #e4fbf6; color: #008b8b; } /* รอตรวจสอบ (ฟ้าอมเขียว) */
+    .pill-preparing { background-color: #fff8cc; color: #d97706; } /* กำลังเตรียมของ (เหลือง) */
+    .pill-shipped { background-color: #e7f5ff; color: #1971c2; }   /* จัดส่งแล้ว (น้ำเงิน) */
+</style>
+
+<div class="content-wrapper pb-5" style="font-family: 'Prompt', sans-serif;">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold mb-0" style="border-left: 6px solid var(--sirin-blue); padding-left: 15px; color: #003D7C;">ประวัติการสั่งซื้อ</h3>
+    </div>
+
+    <div class="card card-minimal border-0 shadow-sm">
+        <div class="card-body p-0 text-center">
+            <div class="table-responsive">
+                
+                <table class="table align-middle w-100">
+                    <thead class="bg-light">
+                        <tr class="small text-muted">
+                            <th class="text-start ps-4">ORDER ID</th>
+                            <th>วันที่สั่งซื้อ</th>
+                            <th class="text-start">รายการสินค้า</th>
+                            <th class="text-center">รูปแบบ</th>    
+                            <th class="text-center">ยอดรวม</th>    
+                            <th class="text-center pe-4">สถานะ</th> 
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!groupedOrders.Any())
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-muted fw-bold">
+                                    <i class="bi bi-inbox fs-1 d-block mb-3 text-secondary"></i>
+                                    คุณยังไม่มีประวัติการสั่งซื้อในระบบ
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var group in groupedOrders)
+                            {
+                                var firstItem = group.First(); 
+                                var totalAmount = group.Sum(x => x.O_TotalAmount); 
+
+                                <tr>
+                                    <td class="text-start ps-4 fw-bold" style="color: #003D7C;">#ORD-@firstItem.O_OrderID</td>
+                                    
+                                    <td>
+                                        <div class="fw-bold text-dark">@firstItem.O_OrderDate.ToString("dd/MM/yyyy")</div>
+                                        <div class="small text-muted">@firstItem.O_OrderDate.ToString("HH:mm") น.</div>
+                                    </td>
+                                    
+                                    <td class="text-start">
+                                        @foreach (var item in group)
+                                        {
+                                            <div class="fw-bold text-dark text-truncate mb-1" style="max-width: 280px;">
+                                                • @item.O_ProductName <span class="text-primary ms-1">(x@(item.O_Quantity))</span>
+                                            </div>
+                                            @if (!string.IsNullOrEmpty(item.O_GiftItemName))
+                                            {
+                                                <div class="small text-success fw-bold mb-2 ps-2">
+                                                    <i class="bi bi-gift-fill me-1"></i>แถมฟรี: @item.O_GiftItemName
+                                                </div>
+                                            }
+                                        }
+                                    </td>
+                                    
+                                    <td class="text-center">
+                                        @if (firstItem.O_PaymentType == "Pickup")
+                                        {
+                                            <span class="badge bg-light text-primary px-3 py-2 border" style="border-radius: 8px;">รับที่ร้าน</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-light text-dark px-3 py-2 border" style="border-radius: 8px;">จัดส่ง</span>
+                                        }
+                                    </td>
+                                    
+                                    <td class="text-center fw-bold text-dark fs-5">฿@totalAmount.ToString("N0")</td>
+                                    
+                                    <td class="text-center pe-4">
+                                        @{
+                                            var statusLabel = firstItem.O_Status ?? "รอตรวจสอบ";
+                                            var badgeClass = "pill-checking"; // ค่าเริ่มต้นคือฟ้าอมเขียว
+
+                                            if (statusLabel == "กำลังเตรียมของ" || statusLabel == "Preparing") {
+                                                statusLabel = "กำลังเตรียมของ";
+                                                badgeClass = "pill-preparing";
+                                            } else if (statusLabel == "จัดส่งแล้ว" || statusLabel == "จัดส่งสินค้าแล้ว" || statusLabel == "Shipped") {
+                                                statusLabel = "จัดส่งแล้ว";
+                                                badgeClass = "pill-shipped";
+                                            } else {
+                                                // ถ้าไม่ได้ตรงกับ 2 อันบน ให้บังคับเป็นรอตรวจสอบเสมอ
+                                                statusLabel = "รอตรวจสอบ";
+                                                badgeClass = "pill-checking";
+                                            }
+                                        }
+                                        <span class="pill-badge @badgeClass">@statusLabel</span>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    </div>
+</div>

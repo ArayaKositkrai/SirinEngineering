@@ -23,6 +23,7 @@ C:\Users\USER\Desktop\Project402\SirinEngineering\bin\Debug\net10.0\Microsoft.En
 C:\Users\USER\Desktop\Project402\SirinEngineering\bin\Debug\net10.0\Microsoft.Extensions.DependencyModel.dll
 C:\Users\USER\Desktop\Project402\SirinEngineering\bin\Debug\net10.0\Mono.TextTemplating.dll
 C:\Users\USER\Desktop\Project402\SirinEngineering\bin\Debug\net10.0\MySqlConnector.dll
+C:\Users\USER\Desktop\Project402\SirinEngineering\bin\Debug\net10.0\Newtonsoft.Json.dll
 C:\Users\USER\Desktop\Project402\SirinEngineering\bin\Debug\net10.0\Pomelo.EntityFrameworkCore.MySql.dll
 C:\Users\USER\Desktop\Project402\SirinEngineering\bin\Debug\net10.0\System.CodeDom.dll
 C:\Users\USER\Desktop\Project402\SirinEngineering\bin\Debug\net10.0\System.Composition.AttributedModel.dll
@@ -187,4 +188,3 @@ C:\Users\USER\Desktop\Project402\SirinEngineering\obj\Debug\net10.0\refint\Sirin
 C:\Users\USER\Desktop\Project402\SirinEngineering\obj\Debug\net10.0\SirinEngineering.pdb
 C:\Users\USER\Desktop\Project402\SirinEngineering\obj\Debug\net10.0\SirinEngineering.genruntimeconfig.cache
 C:\Users\USER\Desktop\Project402\SirinEngineering\obj\Debug\net10.0\ref\SirinEngineering.dll
-C:\Users\USER\Desktop\Project402\SirinEngineering\bin\Debug\net10.0\Newtonsoft.Json.dll

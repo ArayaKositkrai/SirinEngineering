@@ -100,6 +100,46 @@
     .btn-buy { background: var(--sirin-blue); color: #fff; border: none; width: 100%; padding: 12px; border-radius: 12px; font-weight: 700; transition: 0.2s; margin-top: 15px; }
     .btn-buy:hover { background: #002d5c; }
 
+    /* Wrapper */
+    .search-wrapper {
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #0077cc; /* Sirin Blue */
+        transition: 0.2s;
+    }
+
+    /* Hover effect */
+    .search-wrapper:hover {
+        box-shadow: 0 2px 8px rgba(0,119,204,0.15);
+    }
+
+    /* Icon */
+    .search-icon {
+        background-color: #f8f9fa;
+        border: none;
+        @* color: #0077cc; *@
+        padding: 10px 12px;
+    }
+
+    .search-bar {
+        border: none;
+        background: #fdfeff;
+        border-radius: 12px;
+        padding: 10px 18px;
+        font-size: 0.9rem;
+        min-width: 450px;
+        transition: 0.2s;
+    }
+
+    .search-bar:focus {
+        outline: none;
+        background: #fcfdff;
+    }
+
+    .search-wrapper:focus-within {
+        border-color: #005fa3;
+        box-shadow: 0 0 0 2px rgba(0,119,204,0.2);
+    }
     /* Responsive */
     @@media (max-width: 992px) { .product-grid { grid-template-columns: repeat(3, 1fr); } }
     @@media (max-width: 768px) { .product-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -113,7 +153,28 @@
             @(currentCategoryId == null ? "สินค้าทั้งหมด" : categories.FirstOrDefault(c => c.C_CategoryID == currentCategoryId)?.C_CategoryName)
         </h3>
     </div>
+    <div class="row mb-4">
+    <div class="col-md-6">
+        <form asp-action="ProductList" method="get">
+            <div class="input-group search-wrapper">
+                
+                <span class="input-group-text search-icon">
+                    <i class="bi bi-search"></i>
+                </span>
 
+                <input type="hidden" name="categoryId" value="@ViewBag.CurrentCategory" />
+
+                <input type="text"
+                       name="searchKeyword"
+                       value="@ViewBag.SearchKeyword"
+                       class="form-control search-bar"
+                       placeholder="ค้นหาสินค้า, ยี่ห้อ..."
+                       onchange="this.form.submit()" />
+
+            </div>
+        </form>
+    </div>
+</div>
     <div class="slider-container">
         <button class="slider-btn" onclick="document.getElementById('cat-scroll').scrollBy({ left: -200, behavior: 'smooth' })">
             <i class="bi bi-chevron-left"></i>

@@ -14,6 +14,13 @@ builder.Services.AddAuthentication("MyCookieAuth").AddCookie("MyCookieAuth", opt
     options.LoginPath = "/Account/Login"; // ถ้ายังไม่ Login ให้เด้งมาหน้านี้
 });
 
+builder.Services.AddSession(options => {
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // ให้ตะกร้าอยู่ได้ 30 นาที
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+builder.Services.AddHttpContextAccessor(); // ช่วยให้ดึงข้อมูล User ง่ายขึ้น
+
 builder.Services.AddSession();
 var app = builder.Build();
 
@@ -26,8 +33,8 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseSession();
 app.UseRouting();
+app.UseSession();
 
 app.UseAuthentication(); 
 app.UseAuthorization();
