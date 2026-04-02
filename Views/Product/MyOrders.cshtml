@@ -3,7 +3,7 @@
     Layout = "~/Views/Shared/Layout/_CustomerLayout.cshtml";
     ViewData["Title"] = "My Orders";
 
-    // 💡 จัดกลุ่ม (Group) สินค้าที่สั่งในเวลาเดียวกัน (นาทีเดียวกัน) ให้รวมเป็น 1 Order
+    // จัดกลุ่ม (Group) สินค้าที่สั่งในเวลาเดียวกันให้รวมเป็น 1 Order
     var groupedOrders = Model?
         .GroupBy(o => new { Date = o.O_OrderDate.ToString("yyyyMMddHHmm"), Type = o.O_PaymentType })
         .OrderByDescending(g => g.First().O_OrderDate)
@@ -56,22 +56,41 @@
         transform: translateY(-1px);
     }
 
-    /* ---------------------------------------------------
-       สไตล์ป้ายสถานะ (มีแค่ 3 สี ตามที่สั่งเป๊ะๆ)
-    -----------------------------------------------------*/
     .pill-badge {
         border-radius: 50px;
-        padding: 6px 16px; 
+        padding: 6px 18px; 
         font-size: 0.85rem;
         font-weight: 600;
         display: inline-block;
         text-align: center;
-        border: none;
+        min-width: 140px;
+        letter-spacing: 0.3px;
+        transition: 0.3s
     }
     
-    .pill-checking { background-color: #e4fbf6; color: #008b8b; } /* รอตรวจสอบ (ฟ้าอมเขียว) */
-    .pill-preparing { background-color: #fff8cc; color: #d97706; } /* กำลังเตรียมของ (เหลือง) */
-    .pill-shipped { background-color: #e7f5ff; color: #1971c2; }   /* จัดส่งแล้ว (น้ำเงิน) */
+    /* 🟡 รอตรวจสอบ (Amber / เหลืองส้มทอง) */
+    .pill-checking { 
+        background-color: #FFFBEB; 
+        color: #B45309; 
+    } 
+    
+    /* 🟣 กำลังเตรียมของ (Indigo / ม่วงอมน้ำเงิน) */
+    .pill-preparing { 
+        background-color: #EEF2FF; 
+        color: #4338CA; 
+    } 
+    
+    /* 🔵 จัดส่งแล้ว (Sky Blue / ฟ้าใส) */
+    .pill-shipped { 
+        background-color: #F0F9FF; 
+        color: #0369A1; 
+    }   
+    
+    /* 🟢 รับสินค้าแล้ว / สำเร็จ (Emerald / เขียวสดชื่น) */
+    .pill-success { 
+        background-color: #ECFDF5; 
+        color: #047857; 
+    }
 </style>
 
 <div class="content-wrapper pb-5" style="font-family: 'Prompt', sans-serif;">
@@ -151,7 +170,7 @@
                                     <td class="text-center pe-4">
                                         @{
                                             var statusLabel = firstItem.O_Status ?? "รอตรวจสอบ";
-                                            var badgeClass = "pill-checking"; // ค่าเริ่มต้นคือฟ้าอมเขียว
+                                            var badgeClass = "pill-checking";
 
                                             if (statusLabel == "กำลังเตรียมของ" || statusLabel == "Preparing") {
                                                 statusLabel = "กำลังเตรียมของ";
@@ -159,8 +178,10 @@
                                             } else if (statusLabel == "จัดส่งแล้ว" || statusLabel == "จัดส่งสินค้าแล้ว" || statusLabel == "Shipped") {
                                                 statusLabel = "จัดส่งแล้ว";
                                                 badgeClass = "pill-shipped";
+                                            } else if (statusLabel == "รับสินค้าแล้ว" || statusLabel == "Received") {
+                                                statusLabel = "รับสินค้าแล้ว";
+                                                badgeClass = "pill-success"; // สีเขียว
                                             } else {
-                                                // ถ้าไม่ได้ตรงกับ 2 อันบน ให้บังคับเป็นรอตรวจสอบเสมอ
                                                 statusLabel = "รอตรวจสอบ";
                                                 badgeClass = "pill-checking";
                                             }

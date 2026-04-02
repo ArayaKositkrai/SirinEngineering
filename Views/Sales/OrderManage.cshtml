@@ -1,0 +1,328 @@
+@model List<SirinEngineering.Models.db.OrderModel>
+@{
+    Layout = "~/Views/Shared/Layout/_UserLayout.cshtml";
+    ViewData["Title"] = "Order Management";
+
+    var users = ViewBag.Users as List<SirinEngineering.Models.db.UserModel>;
+
+    var groupedOrders = Model?
+        .GroupBy(o => new { Date = o.O_OrderDate.ToString("yyyyMMddHHmm"), User = o.O_UserID })
+        .OrderByDescending(g => g.First().O_OrderDate)
+        .ToList() ?? new();
+
+    string searchId = Context.Request.Query["searchId"].ToString();
+    string statusFilter = Context.Request.Query["statusFilter"].ToString();
+
+    // ลอจิกการฟิลเตอร์ข้อมูล
+    if (!string.IsNullOrEmpty(searchId))
+    {
+        var cleanSearch = searchId.Replace("#ORD-", "").Replace("ORD-", "").Replace("#", "").Trim();
+        groupedOrders = groupedOrders.Where(g => g.First().O_OrderID.ToString() == cleanSearch).ToList();
+    }
+
+    if (!string.IsNullOrEmpty(statusFilter) && statusFilter != "all")
+    {
+        groupedOrders = groupedOrders.Where(g => {
+            var status = g.First().O_Status ?? "รอตรวจสอบ";
+            if (status == "Pending") status = "รอตรวจสอบ";
+            if (status == "Preparing") status = "กำลังเตรียมของ";
+            if (status == "Shipped") status = "จัดส่งแล้ว";
+            if (status == "Received") status = "รับสินค้าแล้ว";
+            return status == statusFilter;
+        }).ToList();
+    }
+
+    int pageSize = 4; 
+    int currentPage = 1;
+    if (Context.Request.Query.ContainsKey("page")) {
+        int.TryParse(Context.Request.Query["page"], out currentPage);
+    }
+    if (currentPage < 1) currentPage = 1;
+
+    int totalItems = groupedOrders.Count;
+    int totalPages = totalItems > 0 ? (int)Math.Ceiling(totalItems / (double)pageSize) : 1;
+    var pagedOrders = groupedOrders.Skip((currentPage - 1) * pageSize).Take(pageSize).ToList();
+}
+
+<style>
+    :root { 
+        --sirin-blue: #003D7C; 
+        --sirin-blue-hover: #002d5c;
+        --bg-light: #f8fafc;
+        --text-dark: #0f172a;
+        --text-muted: #64748b;
+        --border-color: #e2e8f0;
+    }
+
+    .card-premium { border: none; border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04); background: white; overflow: hidden; }
+    .table { width: 100%; border-collapse: collapse; margin-bottom: 0; }
+    .table thead th { background-color: var(--bg-light); color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; padding: 18px 20px; border-bottom: 2px solid var(--border-color); letter-spacing: 0.5px; }
+    .table tbody td { padding: 18px 20px; vertical-align: middle; border-bottom: 1px solid #f1f5f9; transition: 0.2s; }
+    .table tbody tr:hover { background-color: #f8fafc; } 
+
+    .btn-action { background: var(--sirin-blue); color: white; border-radius: 10px; transition: all 0.3s ease; border: none; padding: 8px 18px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-action:hover { background: var(--sirin-blue-hover); transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,61,124,0.25); }
+
+    .pill-badge { border-radius: 50px; padding: 6px 16px; font-size: 0.85rem; font-weight: 600; display: inline-block; text-align: center; min-width: 140px; letter-spacing: 0.2px; }
+    .pill-checking { background-color: #FFFBEB; color: #B45309; border: 1px solid #FDE68A; } 
+    .pill-preparing { background-color: #EEF2FF; color: #4338CA; border: 1px solid #C7D2FE; } 
+    .pill-shipped { background-color: #F0F9FF; color: #0369A1; border: 1px solid #BAE6FD; }   
+    .pill-success { background-color: #ECFDF5; color: #047857; border: 1px solid #A7F3D0; }
+
+    /* 🌟 แก้ไข: Search & Filter ให้เรียงแถวเดียวกันความสูงเท่ากันเป๊ะ 🌟 */
+    .filter-select { 
+        border-radius: 12px; padding: 10px 35px 10px 15px; border: 1px solid var(--border-color); 
+        background-color: white; 
+        font-weight: normal; /* <--- เปลี่ยนเป็น normal (ไม่หนา) */
+        font-size: 0.9rem;   /* <--- เพิ่มบรรทัดนี้เพื่อลดขนาดฟอนต์ */
+        color: #475569; min-width: 180px; 
+        cursor: pointer; appearance: none; 
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2364748b' class='bi bi-chevron-down' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E"); 
+        background-repeat: no-repeat; background-position: right 15px center; background-size: 14px; 
+        outline: none; height: 45px;
+    }
+    .filter-select:focus { border-color: var(--sirin-blue); }
+
+    .search-container {
+        display: flex; align-items: center; background: white; border: 1px solid var(--border-color); 
+        border-radius: 12px; height: 45px; padding-left: 15px; overflow: hidden;
+    }
+    .search-bar { 
+        border: none; background: transparent; padding: 10px 15px 10px 10px; 
+        font-size: 0.95rem; min-width: 250px; font-weight: 500; outline: none; height: 100%;
+    }
+
+    .pagination-wrapper { padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; background: white; border-top: 1px solid var(--border-color); }
+    .pagination-info { font-size: 0.9rem; font-weight: 500; color: var(--text-muted); }
+    .pagination { display: flex; gap: 8px; list-style: none; padding: 0; margin: 0; align-items: center; }
+    .page-item .page-link { border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 10px; color: var(--text-muted); background: white; font-weight: 600; font-size: 0.9rem; transition: all 0.2s ease; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; min-width: 40px; }
+    .page-item .page-link:hover { border-color: var(--sirin-blue); color: var(--sirin-blue); background: #f8fafc; transform: translateY(-1px); }
+    .page-item.active .page-link { background: var(--sirin-blue); color: white; border-color: var(--sirin-blue); box-shadow: 0 4px 12px rgba(0,61,124,0.25); pointer-events: none; }
+    .page-item.disabled .page-link { opacity: 0.5; pointer-events: none; background: #f8fafc; border-color: var(--border-color); color: #94a3b8; }
+
+    .custom-dialog { border: none; border-radius: 24px; padding: 0; width: 90%; max-width: 500px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); background: white; color: var(--text-dark); }
+    .custom-dialog::backdrop { background-color: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); }
+    .custom-dialog[open] { animation: zoomIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    @@keyframes zoomIn { from { opacity: 0; transform: scale(0.95) translateY(15px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+    .dialog-header { padding: 24px 24px 16px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; }
+    .dialog-title { margin: 0; font-weight: 800; color: var(--sirin-blue); font-size: 1.25rem; display: flex; align-items: center; gap: 8px;}
+    .btn-close-circle { background: #f1f5f9; border: none; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #64748b; cursor: pointer; transition: 0.2s; }
+    .btn-close-circle:hover { background: #e2e8f0; color: #0f172a; transform: rotate(90deg); }
+
+    .dialog-body { padding: 24px; }
+    .info-card { background: #f8fafc; border: 1px solid var(--border-color); border-radius: 16px; padding: 18px; margin-bottom: 20px; }
+    .address-card { background: #f0f9ff; border: 1px dashed #bae6fd; border-radius: 16px; padding: 18px; margin-bottom: 24px; }
+    
+    .select-modern { appearance: none; width: 100%; padding: 14px 16px; border-radius: 12px; border: 2px solid var(--border-color); background-color: #f8fafc; font-size: 0.95rem; font-weight: 600; color: #334155; cursor: pointer; transition: 0.2s; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; background-size: 16px; }
+    .select-modern:focus { border-color: var(--sirin-blue); background-color: white; outline: none; box-shadow: 0 0 0 4px rgba(0, 61, 124, 0.1); }
+
+    .dialog-footer { display: flex; gap: 12px; padding: 0 24px 24px 24px; }
+    .btn-cancel { flex: 1; background: #f1f5f9; color: #475569; border-radius: 12px; border: none; padding: 14px; font-weight: 600; transition: 0.3s; cursor: pointer; }
+    .btn-cancel:hover { background: #e2e8f0; color: #1e293b; }
+    .btn-confirm { flex: 1; background: var(--sirin-blue); color: white; border-radius: 12px; border: none; padding: 14px; font-weight: 600; transition: 0.3s; cursor: pointer; box-shadow: 0 4px 12px rgba(0,61,124,0.2); }
+    .btn-confirm:hover { background: var(--sirin-blue-hover); transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,61,124,0.3); }
+</style>
+
+<div class="d-flex align-items-center mb-4 mt-2 justify-content-between">
+    <h4 class="fw-bold mb-0" style="border-left: 6px solid var(--sirin-blue); padding-left: 15px; color: var(--sirin-blue);">
+        จัดการคำสั่งซื้อของลูกค้า
+    </h4>
+
+    <form method="get" class="d-flex flex-row align-items-center gap-2 m-0">
+        
+        <select name="statusFilter" class="filter-select shadow-sm m-0" onchange="this.form.submit()">
+            <option value="all">ทั้งหมดทุกสถานะ</option>
+            <option value="รอตรวจสอบ" selected="@(statusFilter == "รอตรวจสอบ")">รอตรวจสอบ</option>
+            <option value="กำลังเตรียมของ" selected="@(statusFilter == "กำลังเตรียมของ")">กำลังเตรียมของ</option>
+            <option value="จัดส่งแล้ว" selected="@(statusFilter == "จัดส่งแล้ว")">จัดส่งแล้ว</option>
+            <option value="รับสินค้าแล้ว" selected="@(statusFilter == "รับสินค้าแล้ว")">รับสินค้าแล้ว</option>
+        </select>
+
+        <div class="search-container shadow-sm m-0">
+            <i class="bi bi-search text-muted"></i>
+            <input type="text" name="searchId" value="@searchId" class="search-bar" placeholder="ค้นหาเลขออร์เดอร์..." onchange="this.form.submit()" />
+        </div>
+    </form>
+</div>
+
+<div class="card card-premium">
+    <div style="overflow-x: auto;">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th class="text-start">ORDER ID</th>
+                    <th class="text-start">วันที่สั่งซื้อ</th>
+                    <th class="text-start">ลูกค้า</th>
+                    <th class="text-center">รูปแบบ</th>
+                    <th class="text-center">ยอดรวม</th>
+                    <th class="text-center">สถานะ</th>
+                    <th class="text-end">จัดการ</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!pagedOrders.Any())
+                {
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 60px 20px; color: #94a3b8;">
+                            <i class="bi bi-inbox" style="font-size: 3.5rem; display: block; margin-bottom: 15px; color: #cbd5e1;"></i>
+                            <span style="font-weight: 600; font-size: 1.1rem;">ไม่พบรายการออร์เดอร์ที่ค้นหา</span>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var group in pagedOrders)
+                    {
+                        var firstItem = group.First();
+                        var totalAmount = group.Sum(x => x.O_TotalAmount);
+
+                        <tr>
+                            <td class="text-start fw-bold" style="color: var(--sirin-blue);">#ORD-@firstItem.O_OrderID</td>
+                            <td class="text-start">
+                                <div style="font-weight: 600; color: var(--text-dark);">@firstItem.O_OrderDate.ToString("dd/MM/yyyy")</div>
+                                <div style="font-size: 0.85rem; color: var(--text-muted);">@firstItem.O_OrderDate.ToString("HH:mm") น.</div>
+                            </td>
+                            <td class="text-start fw-bold" style="color: var(--text-dark);">@firstItem.O_CustomerName</td>
+                            <td class="text-center">
+                                <span style="background: #f1f5f9; color: #475569; padding: 6px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600;">
+                                    <i class="bi @(firstItem.O_PaymentType == "Pickup" ? "bi-shop" : "bi-truck") me-1"></i>
+                                    @(firstItem.O_PaymentType == "Pickup" ? "รับที่ร้าน" : "จัดส่ง")
+                                </span>
+                            </td>
+                            <td class="text-center fw-bold fs-5" style="color: var(--text-dark);">฿@totalAmount.ToString("N0")</td>
+                            <td class="text-center">
+                                @{
+                                    var label = firstItem.O_Status ?? "รอตรวจสอบ";
+                                    var badgeClass = "pill-checking";
+                                    if (label == "กำลังเตรียมของ" || label == "Preparing") { label = "กำลังเตรียมของ"; badgeClass = "pill-preparing"; } 
+                                    else if (label == "จัดส่งแล้ว" || label == "Shipped") { label = "จัดส่งแล้ว"; badgeClass = "pill-shipped"; } 
+                                    else if (label == "รับสินค้าแล้ว" || label == "Received") { label = "รับสินค้าแล้ว"; badgeClass = "pill-success"; } 
+                                    else { label = "รอตรวจสอบ"; badgeClass = "pill-checking"; }
+                                }
+                                <span class="pill-badge @badgeClass">@label</span>
+                            </td>
+                            <td class="text-end">
+                                <button type="button" class="btn-action" onclick="document.getElementById('modal-@firstItem.O_OrderID').showModal()">
+                                    <i class="bi bi-sliders"></i> จัดการ
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+    
+    @if (totalPages > 1)
+    {
+        <div class="pagination-wrapper">
+            <div class="pagination-info">
+                แสดงหน้า <span class="fw-bold" style="color: var(--sirin-blue);">@currentPage</span> จาก <span class="fw-bold">@totalPages</span>
+            </div>
+            <ul class="pagination">
+                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                    <a class="page-link" href="?page=@(currentPage - 1)&searchId=@searchId&statusFilter=@statusFilter"><i class="bi bi-chevron-left me-1"></i> ก่อนหน้า</a>
+                </li>
+                
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <li class="page-item @(i == currentPage ? "active" : "")">
+                        <a class="page-link" href="?page=@i&searchId=@searchId&statusFilter=@statusFilter">@i</a>
+                    </li>
+                }
+
+                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                    <a class="page-link" href="?page=@(currentPage + 1)&searchId=@searchId&statusFilter=@statusFilter">ถัดไป <i class="bi bi-chevron-right ms-1"></i></a>
+                </li>
+            </ul>
+        </div>
+    }
+</div>
+
+@if (pagedOrders.Any())
+{
+    @foreach (var group in pagedOrders)
+    {
+        var firstItem = group.First();
+        var customerUser = users?.FirstOrDefault(u => u.U_UserID == firstItem.O_UserID);
+        var label = firstItem.O_Status ?? "รอตรวจสอบ";
+        var totalAmount = group.Sum(x => x.O_TotalAmount);
+
+        <dialog id="modal-@firstItem.O_OrderID" class="custom-dialog">
+            <form asp-action="UpdateOrderStatus" method="post" style="margin: 0;">
+                @foreach(var item in group) { <input type="hidden" name="orderIds" value="@item.O_OrderID" /> }
+
+                <div class="dialog-header">
+                    <h5 class="dialog-title">
+                        <i class="bi bi-receipt-cutoff"></i> ออร์เดอร์ #ORD-@firstItem.O_OrderID
+                    </h5>
+                    <button type="button" class="btn-close-circle" onclick="document.getElementById('modal-@firstItem.O_OrderID').close()" title="ปิดหน้าต่าง">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+
+                <div class="dialog-body">
+                    <div class="info-card">
+                        <div style="font-size: 0.85rem; font-weight: 700; color: #64748b; margin-bottom: 12px;"><i class="bi bi-box-seam me-1"></i> รายการสินค้าที่สั่ง</div>
+                        @foreach (var item in group) {
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="fw-bold" style="color: var(--text-dark); max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    • @item.O_ProductName
+                                </div>
+                                <div style="color: var(--sirin-blue); font-weight: 700;">x@(item.O_Quantity)</div>
+                            </div>
+                            @if (!string.IsNullOrEmpty(item.O_GiftItemName)) {
+                                <div style="font-size: 0.85rem; color: #059669; font-weight: 600; padding-left: 12px; margin-bottom: 8px;">
+                                    <i class="bi bi-gift-fill me-1"></i>แถม: @item.O_GiftItemName
+                                </div>
+                            }
+                        }
+                        <hr style="border: 0; border-top: 1px dashed #cbd5e1; margin: 12px 0;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span style="font-weight: 700; color: #64748b;">ยอดรวมทั้งสิ้น:</span>
+                            <span style="font-weight: 800; font-size: 1.3rem; color: var(--sirin-blue);">฿@totalAmount.ToString("N0")</span>
+                        </div>
+                    </div>
+
+                    @if(firstItem.O_PaymentType != "Pickup") 
+                    {
+                        <div class="address-card">
+                            <div style="font-size: 0.85rem; font-weight: 700; color: #0284c7; margin-bottom: 8px;"><i class="bi bi-geo-alt-fill me-1"></i> ข้อมูลการจัดส่ง</div>
+                            <div style="font-weight: 700; color: var(--text-dark); margin-bottom: 4px;">คุณ @firstItem.O_CustomerName</div>
+                            <div style="color: #334155; font-size: 0.95rem; line-height: 1.5;">@(customerUser?.U_Address ?? "ไม่มีข้อมูลที่อยู่ในระบบ")</div>
+                            <div style="font-size: 0.9rem; color: #64748b; margin-top: 12px; font-weight: 500;">
+                                <i class="bi bi-telephone-fill me-1"></i> โทร: @(customerUser?.U_Phone ?? "-")
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 16px; border-radius: 12px; text-align: center; font-weight: 600; margin-bottom: 24px;">
+                            <i class="bi bi-shop me-1"></i> ลูกค้ารับสินค้าที่หน้าร้าน
+                        </div>
+                    }
+
+                    <div>
+                        <label style="font-size: 0.9rem; font-weight: 700; color: #475569; display: block; margin-bottom: 10px;">อัปเดตสถานะล่าสุด</label>
+                        <select name="newStatus" class="select-modern">
+                            <option value="รอตรวจสอบ" selected="@(label == "รอตรวจสอบ" || label == "Pending")">รอตรวจสอบ</option>
+                            <option value="กำลังเตรียมของ" selected="@(label == "กำลังเตรียมของ" || label == "Preparing")">กำลังเตรียมของ</option>
+                            
+                            @if(firstItem.O_PaymentType == "Pickup") {
+                                <option value="รับสินค้าแล้ว" selected="@(label == "รับสินค้าแล้ว" || label == "Received")">รับสินค้าแล้ว (มารับที่หน้าร้าน)</option>
+                            } else {
+                                <option value="จัดส่งแล้ว" selected="@(label == "จัดส่งแล้ว" || label == "Shipped")">จัดส่งแล้ว (กำลังเดินทาง)</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="dialog-footer">
+                    <button type="button" class="btn-cancel" onclick="document.getElementById('modal-@firstItem.O_OrderID').close()">ยกเลิก</button>
+                    <button type="submit" class="btn-confirm"><i class="bi bi-check2-circle me-2"></i>บันทึกสถานะ</button>
+                </div>
+            </form>
+        </dialog>
+    }
+}
