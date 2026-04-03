@@ -5,7 +5,7 @@
 
     // จัดกลุ่ม (Group) สินค้าที่สั่งในเวลาเดียวกันให้รวมเป็น 1 Order
     var groupedOrders = Model?
-        .GroupBy(o => new { Date = o.O_OrderDate.ToString("yyyyMMddHHmm"), Type = o.O_PaymentType })
+        .GroupBy(o => o.O_OrderDate)
         .OrderByDescending(g => g.First().O_OrderDate)
         .ToList() ?? new();
 }

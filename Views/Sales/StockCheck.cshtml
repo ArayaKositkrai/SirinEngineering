@@ -1,5 +1,231 @@
 @{
     Layout = "~/Views/Shared/Layout/_UserLayout.cshtml";
+    ViewData["Title"] = "Stock Check";
+
+    var allProducts = Model ?? new List<SirinEngineering.Models.db.ProductModel>();
+    
+    // ดึงรายชื่อหมวดหมู่ทั้งหมดที่มีในสินค้า เพื่อเอามาทำ Dropdown Filter
+    var categoryList = allProducts.Where(p => p.Category != null)
+                                  .Select(p => p.Category.C_CategoryName)
+                                  .Distinct()
+                                  .OrderBy(c => c)
+                                  .ToList();
+
+    // 🌟 รับค่าค้นหาและฟิลเตอร์ 🌟
+    string searchKeyword = Context.Request.Query["searchKeyword"].ToString()?.ToLower();
+    string categoryFilter = Context.Request.Query["categoryFilter"].ToString();
+    string stockFilter = Context.Request.Query["stockFilter"].ToString(); // รับค่าสถานะสต๊อก
+
+    // ลอจิกการฟิลเตอร์
+    if (!string.IsNullOrEmpty(searchKeyword))
+    {
+        allProducts = allProducts.Where(p => 
+            p.PD_ProductName.ToLower().Contains(searchKeyword) || 
+            (p.PD_Brand != null && p.PD_Brand.ToLower().Contains(searchKeyword)) ||
+            p.PD_ProductID.ToString() == searchKeyword
+        ).ToList();
+    }
+
+    if (!string.IsNullOrEmpty(categoryFilter) && categoryFilter != "all")
+    {
+        allProducts = allProducts.Where(p => p.Category?.C_CategoryName == categoryFilter).ToList();
+    }
+
+    // 🌟 ลอจิกการกรองตามสถานะสต๊อก 🌟
+    if (!string.IsNullOrEmpty(stockFilter) && stockFilter != "all")
+    {
+        allProducts = allProducts.Where(p => {
+            if (stockFilter == "out") return p.PD_StockQty <= 0;
+            if (stockFilter == "low") return p.PD_StockQty > 0 && p.PD_StockQty <= 10;
+            if (stockFilter == "instock") return p.PD_StockQty > 10;
+            return true;
+        }).ToList();
+    }
+
+    // Pagination
+    int pageSize = 5; 
+    int currentPage = 1;
+    if (Context.Request.Query.ContainsKey("page")) {
+        int.TryParse(Context.Request.Query["page"], out currentPage);
+    }
+    if (currentPage < 1) currentPage = 1;
+
+    int totalItems = allProducts.Count;
+    int totalPages = totalItems > 0 ? (int)Math.Ceiling(totalItems / (double)pageSize) : 1;
+    var pagedProducts = allProducts.Skip((currentPage - 1) * pageSize).Take(pageSize).ToList();
 }
 
-อันนี้คือหน้าเช็คสต๊อกของคุณค่ะ
+@model List<SirinEngineering.Models.db.ProductModel>
+
+<style>
+    :root { 
+        --sirin-blue: #003D7C; 
+        --sirin-blue-hover: #002d5c;
+        --bg-light: #f8fafc;
+        --text-dark: #0f172a;
+        --page-text-muted: #64748b; 
+        --border-color: #e2e8f0;
+    }
+
+    .card-premium { border: none; border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04); background: white; overflow: hidden; }
+    .table { width: 100%; border-collapse: collapse; margin-bottom: 0; }
+    .table thead th { background-color: var(--bg-light); color: var(--page-text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; padding: 18px 20px; border-bottom: 2px solid var(--border-color); letter-spacing: 0.5px; }
+    .table tbody td { padding: 15px 20px; vertical-align: middle; border-bottom: 1px solid #f1f5f9; transition: 0.2s; }
+    .table tbody tr:hover { background-color: #f8fafc; } 
+
+    /* ป้ายบอกสถานะสต๊อก (Stock Badges) */
+    .stock-badge { border-radius: 8px; padding: 6px 14px; font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; letter-spacing: 0.2px; }
+    .stock-instock { background-color: #ECFDF5; color: #047857; border: 1px solid #A7F3D0; }
+    .stock-low { background-color: #FFFBEB; color: #B45309; border: 1px solid #FDE68A; }
+    .stock-out { background-color: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; }
+
+    /* รูปสินค้า */
+    .product-img-wrapper { width: 45px; height: 45px; border-radius: 10px; overflow: hidden; border: 1px solid #e2e8f0; background: #f8fafc; display: flex; align-items: center; justify-content: center; }
+    .product-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* 🌟 Search & Filter 🌟 */
+    .filter-select { border-radius: 12px; padding: 10px 35px 10px 15px; border: 1px solid var(--border-color); background-color: white; font-weight: normal; font-size: 0.9rem; color: #475569; min-width: 180px; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2364748b' class='bi bi-chevron-down' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 15px center; background-size: 14px; outline: none; height: 45px; }
+    .filter-select:focus { border-color: var(--sirin-blue); }
+
+    .search-container { display: flex; align-items: center; background: white; border: 1px solid var(--border-color); border-radius: 12px; height: 45px; padding-left: 15px; overflow: hidden; }
+    .search-bar { border: none; background: transparent; padding: 10px 15px 10px 10px; font-size: 0.95rem; min-width: 250px; font-weight: 500; outline: none; height: 100%; }
+
+    /* Pagination */
+    .pagination-wrapper { padding: 20px 24px; display: flex; justify-content: center; align-items: center; background: transparent; border-top: 1px solid var(--border-color); }
+    .pagination-info { font-size: 0.9rem; color: #94a3b8; font-weight: 400; }
+    .pagination { display: flex; gap: 4px; list-style: none; padding: 0; margin: 0; align-items: center; }
+    .page-item .page-link { border: none; padding: 6px 14px; border-radius: 8px; color: #64748b; background: transparent; font-weight: 500; font-size: 0.95rem; transition: all 0.2s ease; text-decoration: none; position: relative; }
+    .page-item .page-link:hover { color: var(--sirin-blue); background: #f1f5f9; }
+    
+    /* สไตล์หน้าปัจจุบัน (Active) แบบมินิมอล มีแค่ขีดเส้นใต้บางๆ */
+    .page-item.active .page-link { background: transparent; color: var(--sirin-blue); font-weight: 700; pointer-events: none; }
+    .page-item.active .page-link::after { content: ''; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); width: 16px; height: 2.5px; background-color: var(--sirin-blue); border-radius: 4px; }
+    
+    .page-item.disabled .page-link { opacity: 0.3; pointer-events: none; }
+</style>
+
+<div class="d-flex align-items-center mb-4 mt-2 justify-content-between flex-wrap gap-3">
+    <h4 class="fw-bold mb-0" style="border-left: 6px solid var(--sirin-blue); padding-left: 15px; color: var(--sirin-blue);">
+        ตรวจสอบสต๊อกสินค้า (Stock Check)
+    </h4>
+
+    <form method="get" class="d-flex flex-row align-items-center gap-2 m-0">
+        
+        <select name="stockFilter" class="filter-select shadow-sm m-0" onchange="this.form.submit()">
+            <option value="all">สถานะสต๊อกทั้งหมด</option>
+            <option value="instock" selected="@(stockFilter == "instock")">ปกติ</option>
+            <option value="low" selected="@(stockFilter == "low")">ใกล้หมดสต๊อก</option>
+            <option value="out" selected="@(stockFilter == "out")">สินค้าหมด</option>
+        </select>
+
+        <select name="categoryFilter" class="filter-select shadow-sm m-0" onchange="this.form.submit()">
+            <option value="all">ทุกหมวดหมู่</option>
+            @foreach(var cat in categoryList)
+            {
+                <option value="@cat" selected="@(categoryFilter == cat)">@cat</option>
+            }
+        </select>
+
+        <div class="search-container shadow-sm m-0">
+            <i class="bi bi-search text-muted"></i>
+            <input type="text" name="searchKeyword" value="@Context.Request.Query["searchKeyword"]" class="search-bar" placeholder="ค้นหาชื่อสินค้า, แบรนด์, รหัส..." onchange="this.form.submit()" />
+        </div>
+    </form>
+</div>
+
+<div class="card card-premium">
+    <div style="overflow-x: auto;">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th class="text-center" style="width: 80px;">รูปภาพ</th>
+                    <th class="text-start">รหัสสินค้า</th>
+                    <th class="text-start">ชื่อสินค้า</th>
+                    <th class="text-start">หมวดหมู่</th>
+                    <th class="text-start">แบรนด์</th>
+                    <th class="text-end">ราคาขาย</th>
+                    <th class="text-end">คงเหลือ</th>
+                    <th class="text-center">สถานะสต๊อก</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!pagedProducts.Any())
+                {
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 60px 20px; color: #94a3b8;">
+                            <i class="bi bi-box-seam" style="font-size: 3.5rem; display: block; margin-bottom: 15px; color: #cbd5e1;"></i>
+                            <span style="font-weight: 600; font-size: 1.1rem;">ไม่พบรายการสินค้าที่ค้นหา</span>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var item in pagedProducts)
+                    {
+                        <tr>
+                            <td class="text-center">
+                                <div class="product-img-wrapper mx-auto">
+                                    <img src="~/images/products/@item.PD_ProductImage" onerror="this.src='/images/no-image.png'" alt="@item.PD_ProductName">
+                                </div>
+                            </td>
+                            
+                            <td class="text-start fw-bold" style="color: var(--page-text-muted);">@item.PD_ProductID</td>
+                            
+                            <td class="text-start">
+                                <div style="font-weight: 700; color: var(--text-dark);">@item.PD_ProductName</div>
+                                @if(!item.PD_IsActive) {
+                                    <span class="badge bg-danger mt-1" style="font-size: 0.7rem;">ปิดการขาย</span>
+                                }
+                            </td>
+                            
+                            <td class="text-start fw-bold" style="color: var(--page-text-muted);">@(item.Category?.C_CategoryName ?? "-")</td>
+                            
+                            <td class="text-start fw-bold" style="color: var(--page-text-muted);">@(item.PD_Brand ?? "-")</td>
+                            
+                            <td class="text-end fw-bold fs-6" style="color: var(--sirin-blue);">฿@item.PD_Price.ToString("N0")</td>
+                            
+                            <td class="text-end fw-bold fs-5" style="color: var(--text-dark);">@item.PD_StockQty</td>
+                            
+                            <td class="text-center">
+                                @if (item.PD_StockQty <= 0)
+                                {
+                                    <span class="stock-badge stock-out"><i class="bi bi-exclamation-octagon-fill"></i> สินค้าหมด</span>
+                                }
+                                else if (item.PD_StockQty <= 10) 
+                                {
+                                    <span class="stock-badge stock-low"><i class="bi bi-exclamation-triangle-fill"></i> ใกล้หมดสต๊อก</span>
+                                }
+                                else
+                                {
+                                    <span class="stock-badge stock-instock"><i class="bi bi-check-circle-fill"></i> ปกติ</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+    
+    @if (totalPages > 1)
+    {
+        <div class="pagination-wrapper">
+            <ul class="pagination">
+                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                    <a class="page-link" href="?page=@(currentPage - 1)&searchKeyword=@searchKeyword&categoryFilter=@categoryFilter&stockFilter=@stockFilter"><i class="bi bi-chevron-left me-1"></i></a>
+                </li>
+                
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <li class="page-item @(i == currentPage ? "active" : "")">
+                        <a class="page-link" href="?page=@i&searchKeyword=@searchKeyword&categoryFilter=@categoryFilter&stockFilter=@stockFilter">@i</a>
+                    </li>
+                }
+
+                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                    <a class="page-link" href="?page=@(currentPage + 1)&searchKeyword=@searchKeyword&categoryFilter=@categoryFilter&stockFilter=@stockFilter"><i class="bi bi-chevron-right ms-1"></i></a>
+                </li>
+            </ul>
+        </div>
+    }
+</div>

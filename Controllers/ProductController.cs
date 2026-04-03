@@ -203,7 +203,7 @@ public class ProductController : Controller
         return View(myOrders);
     }
 
-    // 1. รับค่าจากตะกร้าสินค้า
+    // 1. รับค่าจากตะกร้าสินค้า (เตรียมข้อมูลส่งไปหน้า Checkout)
     [HttpPost]
     public IActionResult ProceedToCheckout(List<int> SelectedProducts, List<int> Quantities, List<int> ProductIds, string ShippingMethod)
     {
@@ -225,36 +225,11 @@ public class ProductController : Controller
             }
         }
 
+        // 🌟 เก็บรายการสินค้าและรูปแบบการส่ง (Pickup/Delivery) ลง Session
         HttpContext.Session.SetString("CheckoutItems", JsonConvert.SerializeObject(checkoutItems));
+        HttpContext.Session.SetString("ShippingMethod", ShippingMethod ?? "Delivery");
 
-        if (ShippingMethod == "Pickup")
-        {
-            foreach (var item in checkoutItems)
-            {
-                var newOrder = new OrderModel
-                {
-                    O_OrderDate = DateTime.Now,
-                    O_CustomerName = user.U_FullName ?? "", // กัน Null
-                    O_ProductID = item.ProductId,
-                    O_ProductName = item.ProductName ?? "", // กัน Null
-                    O_Quantity = item.Quantity,
-                    O_Price = item.Price,
-                    O_SubTotal = item.Price * item.Quantity,
-                    O_TotalAmount = item.Price * item.Quantity,
-                    O_PaymentType = "Pickup",
-                    O_UserID = user.U_UserID,
-                    O_Status = "รอรับสินค้า",
-                    O_GiftItemName = "" // <--- เติมบรรทัดนี้เพื่อแก้บั๊ก Database พัง
-                };
-                _db.TBL_Order.Add(newOrder);
-            }
-            _db.SaveChanges();
-
-            cart.RemoveAll(c => SelectedProducts.Contains(c.ProductId));
-            HttpContext.Session.SetString("Cart", JsonConvert.SerializeObject(cart));
-            return RedirectToAction("MyOrders");
-        }
-
+        // 🌟 ไม่ต้องบันทึก DB ตรงนี้แล้ว! บังคับไปหน้า Checkout เสมอ
         return RedirectToAction("Checkout");
     }
 
@@ -271,44 +246,61 @@ public class ProductController : Controller
         return View(user);
     }
 
-    // 3. ยืนยันจากหน้า Checkout -> บันทึก -> ไป MyOrders
+    // 3. ยืนยันจากหน้า Checkout -> บันทึก DB -> หักสต๊อก -> ไป MyOrders
     [HttpPost]
     public IActionResult ConfirmOrder(string U_Address)
     {
         var currentUsername = User.Identity.Name;
         var user = _db.TBL_User.FirstOrDefault(u => u.U_Username == currentUsername);
         var checkoutJson = HttpContext.Session.GetString("CheckoutItems");
+        
+        // 🌟 ดึงรูปแบบการส่งจาก Session มาเช็ค
+        var shippingMethod = HttpContext.Session.GetString("ShippingMethod") ?? "Delivery"; 
+
         if (string.IsNullOrEmpty(checkoutJson)) return RedirectToAction("Cart");
 
         var checkoutItems = JsonConvert.DeserializeObject<List<CartItemViewModel>>(checkoutJson);
 
-        if (user != null)
+        // 🌟 อัปเดตที่อยู่เฉพาะตอนเลือก "จัดส่ง"
+        if (user != null && shippingMethod == "Delivery")
         {
             user.U_Address = U_Address;
             _db.SaveChanges();
         }
 
+        var orderDate = DateTime.Now; // ล็อกเวลาบิล
+
         foreach (var item in checkoutItems)
         {
             var newOrder = new OrderModel
             {
-                O_OrderDate = DateTime.Now,
-                O_CustomerName = user.U_FullName ?? "", // กัน Null
+                O_OrderDate = orderDate, 
+                O_CustomerName = user.U_FullName ?? "", 
                 O_ProductID = item.ProductId,
-                O_ProductName = item.ProductName ?? "", // กัน Null
+                O_ProductName = item.ProductName ?? "", 
                 O_Quantity = item.Quantity,
                 O_Price = item.Price,
                 O_SubTotal = item.Price * item.Quantity,
                 O_TotalAmount = item.Price * item.Quantity,
-                O_PaymentType = "Delivery",
+                O_PaymentType = shippingMethod, // 🌟 ใช้ค่าจาก Session (Pickup หรือ Delivery)
                 O_UserID = user.U_UserID,
                 O_Status = "รอตรวจสอบ",
-                O_GiftItemName = "" // <--- เติมบรรทัดนี้เพื่อแก้บั๊ก Database พัง
+                O_GiftItemName = "" 
             };
             _db.TBL_Order.Add(newOrder);
-        }
-        _db.SaveChanges();
 
+            // ตัดสต๊อกสินค้า
+            var product = _db.TBL_Product.FirstOrDefault(p => p.PD_ProductID == item.ProductId);
+            if (product != null)
+            {
+                product.PD_StockQty -= item.Quantity;
+                if (product.PD_StockQty < 0) product.PD_StockQty = 0; 
+                _db.TBL_Product.Update(product);
+            }
+        }
+        _db.SaveChanges(); 
+
+        // ล้างตะกร้า
         var cartJsonOriginal = HttpContext.Session.GetString("Cart");
         if (!string.IsNullOrEmpty(cartJsonOriginal))
         {
@@ -317,7 +309,10 @@ public class ProductController : Controller
             cart.RemoveAll(c => purchasedIds.Contains(c.ProductId));
             HttpContext.Session.SetString("Cart", JsonConvert.SerializeObject(cart));
         }
+        
+        // เคลียร์ Session 
         HttpContext.Session.Remove("CheckoutItems");
+        HttpContext.Session.Remove("ShippingMethod");
 
         return RedirectToAction("MyOrders");
     }

@@ -2,7 +2,7 @@
 @{
     Layout = "~/Views/Shared/Layout/_CustomerLayout.cshtml";
     var checkoutItems = ViewBag.CheckoutItems as List<SirinEngineering.ViewModels.CartItemViewModel>;
-    
+    var shippingMethod = Context.Session.GetString("ShippingMethod");
     // ดักจับป้องกันหน้าพัง ถ้าหาตะกร้าไม่เจอให้ค่าเป็น 0
     decimal subTotal = checkoutItems?.Sum(x => x.Price * x.Quantity) ?? 0;
     decimal shippingFee = subTotal >= 2000 ? 0 : 150;
@@ -40,22 +40,34 @@
                 
                 <div class="col-lg-7">
                     <div class="card-box h-100">
-                        <h4 class="fw-bold border-bottom pb-3 mb-4">ที่อยู่สำหรับจัดส่ง</h4>
-                        <div class="row mb-3">
-                            <div class="col-6">
-                                <label class="fw-bold text-muted small mb-1">ชื่อ-นามสกุล</label>
-                                <input type="text" class="form-control bg-light border-0 p-3" value="@Model.U_FullName" readonly style="border-radius:10px;">
+                        @if (shippingMethod == "Pickup")
+                        {
+                            <h4 class="fw-bold border-bottom pb-3 mb-4">รับสินค้าที่หน้าร้าน</h4>
+                            <div class="alert alert-info border-0 p-4" style="border-radius:15px; background-color: #f0f9ff; color: #0284c7;">
+                                <i class="bi bi-shop fs-4 d-block mb-2"></i>
+                                <strong>รูปแบบการรับสินค้า:</strong> คุณเลือกมารับสินค้าด้วยตัวเองที่หน้าร้าน (ไม่ต้องระบุที่อยู่จัดส่ง)
+                                <input type="hidden" name="U_Address" value="รับที่ร้าน" />
                             </div>
-                            <div class="col-6">
-                                <label class="fw-bold text-muted small mb-1">เบอร์โทรศัพท์</label>
-                                <input type="text" class="form-control bg-light border-0 p-3" value="@Model.U_Phone" readonly style="border-radius:10px;">
+                        }
+                        else
+                        {
+                            <h4 class="fw-bold border-bottom pb-3 mb-4">ที่อยู่สำหรับจัดส่ง</h4>
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="fw-bold text-muted small mb-1">ชื่อ-นามสกุล</label>
+                                    <input type="text" class="form-control bg-light border-0 p-3" value="@Model.U_FullName" readonly style="border-radius:10px;">
+                                </div>
+                                <div class="col-6">
+                                    <label class="fw-bold text-muted small mb-1">เบอร์โทรศัพท์</label>
+                                    <input type="text" class="form-control bg-light border-0 p-3" value="@Model.U_Phone" readonly style="border-radius:10px;">
+                                </div>
                             </div>
-                        </div>
-                        <div class="mb-0">
-                            <label class="fw-bold text-dark mb-1">กรอกที่อยู่จัดส่ง <span class="text-danger">*</span></label>
-                            <textarea name="U_Address" class="form-control p-3" rows="5" required style="border-radius:12px; border: 1px solid #cbd5e1;">@Model.U_Address</textarea>
-                            <small class="text-primary fw-bold mt-2 d-block">* ระบบจะจำที่อยู่นี้ไว้ใช้ในครั้งถัดไป</small>
-                        </div>
+                            <div class="mb-0">
+                                <label class="fw-bold text-dark mb-1">กรอกที่อยู่จัดส่ง <span class="text-danger">*</span></label>
+                                <textarea name="U_Address" class="form-control p-3" rows="5" required style="border-radius:12px; border: 1px solid #cbd5e1;">@Model.U_Address</textarea>
+                                <small class="text-primary fw-bold mt-2 d-block">* ระบบจะจำที่อยู่นี้ไว้ใช้ในครั้งถัดไป</small>
+                            </div>
+                        }
                     </div>
                 </div>
 

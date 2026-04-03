@@ -23,7 +23,8 @@ namespace SirinEngineering.Controllers
 
         public IActionResult StockCheck()
         {
-            return View();
+            var products = _db.TBL_Product.Include(p => p.Category).OrderByDescending(p => p.PD_ProductID).ToList();
+            return View(products);
         }
 
         // 1. ฟังก์ชันเปิดหน้าจัดการคำสั่งซื้อ

@@ -148,34 +148,60 @@
 
     <div class="product-grid">
         @foreach (var item in Model)
+{
+    <div class="p-card shadow-sm position-relative">
+        @* --- แสดงป้ายสินค้าหมด --- *@
+        @if (item.PD_StockQty <= 0)
         {
-            <div class="p-card shadow-sm">
-                <div class="p-img">
-                    <img src="~/images/products/@(string.IsNullOrEmpty(item.PD_ProductImage) ? "no-image.png" : item.PD_ProductImage)" 
-                         onerror="this.src='/images/products/no-image.png'" />
-                </div>
-                
-                <div class="small text-muted mb-1">@item.PD_Brand</div>
-                <div class="p-name">@item.PD_ProductName</div>
-
-                <form asp-controller="Product" asp-action="AddToCart" method="post" class="mt-auto">
-                    <input type="hidden" name="productId" value="@item.PD_ProductID" />
-                    
-                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 15px;">
-                        <div class="p-price" style="margin: 0;">฿@item.PD_Price.ToString("N0")</div>
-                        <div class="qty-wrapper">
-                            <button type="button" class="qty-btn" onclick="this.parentNode.querySelector('input[type=number]').stepDown()">-</button>
-                            <input type="number" name="qty" value="1" min="1" class="qty-input" />
-                            <button type="button" class="qty-btn" onclick="this.parentNode.querySelector('input[type=number]').stepUp()">+</button>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn-buy">
-                        <i class="bi bi-cart-plus me-1"></i> ใส่ตะกร้า
-                    </button>
-                </form>
+            <div class="position-absolute top-0 end-0 m-2" style="z-index: 5;">
+                <span class="badge bg-danger px-3 py-2 shadow-sm" style="border-radius: 20px; font-weight: 600;">
+                    <i class="bi bi-exclamation-circle me-1"></i> สินค้าหมดชั่วคราว
+                </span>
             </div>
         }
+
+        <div class="p-img">
+            <img src="~/images/products/@(string.IsNullOrEmpty(item.PD_ProductImage) ? "no-image.png" : item.PD_ProductImage)" 
+                 onerror="this.src='/images/products/no-image.png'" 
+                 style="@(item.PD_StockQty <= 0 ? "opacity: 0.5; filter: grayscale(80%);" : "")" />
+        </div>
+        
+        <div class="small text-muted mb-1">@item.PD_Brand</div>
+        <div class="p-name">@item.PD_ProductName</div>
+
+        <form asp-controller="Product" asp-action="AddToCart" method="post" class="mt-auto">
+            <input type="hidden" name="productId" value="@item.PD_ProductID" />
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 15px;">
+                <div class="p-price" style="margin: 0;">฿@item.PD_Price.ToString("N0")</div>
+                
+                @* ซ่อนตัวเลือกจำนวนถ้าของหมด *@
+                @if (item.PD_StockQty > 0)
+                {
+                    <div class="qty-wrapper">
+                        <button type="button" class="qty-btn" onclick="this.parentNode.querySelector('input[type=number]').stepDown()">-</button>
+                        <input type="number" name="qty" value="1" min="1" class="qty-input" />
+                        <button type="button" class="qty-btn" onclick="this.parentNode.querySelector('input[type=number]').stepUp()">+</button>
+                    </div>
+                }
+            </div>
+
+            @* --- ปุ่มสั่งซื้อ / ปุ่มสินค้าหมด --- *@
+            @if (item.PD_StockQty <= 0)
+            {
+                <button type="button" class="btn btn-secondary w-100 py-2 fw-bold" disabled style="border-radius: 12px; cursor: not-allowed; opacity: 0.8;">
+                    <i class="bi bi-cart-x me-1"></i> สินค้าหมดชั่วคราว
+                </button>
+            }
+            else
+            {
+                <button type="submit" class="btn-buy">
+                    <i class="bi bi-cart-plus me-1"></i> ใส่ตะกร้า
+                </button>
+            }
+        </form>
+    </div>
+}
     </div>
     <br>
     <div class="d-flex justify-content-end mt-4 mb-2">

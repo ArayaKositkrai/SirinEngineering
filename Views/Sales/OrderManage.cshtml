@@ -6,7 +6,7 @@
     var users = ViewBag.Users as List<SirinEngineering.Models.db.UserModel>;
 
     var groupedOrders = Model?
-        .GroupBy(o => new { Date = o.O_OrderDate.ToString("yyyyMMddHHmm"), User = o.O_UserID })
+        .GroupBy(o => o.O_OrderDate)
         .OrderByDescending(g => g.First().O_OrderDate)
         .ToList() ?? new();
 
@@ -64,10 +64,10 @@
     .btn-action:hover { background: var(--sirin-blue-hover); transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,61,124,0.25); }
 
     .pill-badge { border-radius: 50px; padding: 6px 16px; font-size: 0.85rem; font-weight: 600; display: inline-block; text-align: center; min-width: 140px; letter-spacing: 0.2px; }
-    .pill-checking { background-color: #FFFBEB; color: #B45309; border: 1px solid #FDE68A; } 
-    .pill-preparing { background-color: #EEF2FF; color: #4338CA; border: 1px solid #C7D2FE; } 
-    .pill-shipped { background-color: #F0F9FF; color: #0369A1; border: 1px solid #BAE6FD; }   
-    .pill-success { background-color: #ECFDF5; color: #047857; border: 1px solid #A7F3D0; }
+    .pill-checking { background-color: #FFFBEB; color: #B45309; } 
+    .pill-preparing { background-color: #EEF2FF; color: #4338CA; } 
+    .pill-shipped { background-color: #F0F9FF; color: #0369A1; }   
+    .pill-success { background-color: #ECFDF5; color: #047857; }
 
     /* 🌟 แก้ไข: Search & Filter ให้เรียงแถวเดียวกันความสูงเท่ากันเป๊ะ 🌟 */
     .filter-select { 
@@ -92,13 +92,18 @@
         font-size: 0.95rem; min-width: 250px; font-weight: 500; outline: none; height: 100%;
     }
 
-    .pagination-wrapper { padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; background: white; border-top: 1px solid var(--border-color); }
-    .pagination-info { font-size: 0.9rem; font-weight: 500; color: var(--text-muted); }
-    .pagination { display: flex; gap: 8px; list-style: none; padding: 0; margin: 0; align-items: center; }
-    .page-item .page-link { border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 10px; color: var(--text-muted); background: white; font-weight: 600; font-size: 0.9rem; transition: all 0.2s ease; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; min-width: 40px; }
-    .page-item .page-link:hover { border-color: var(--sirin-blue); color: var(--sirin-blue); background: #f8fafc; transform: translateY(-1px); }
-    .page-item.active .page-link { background: var(--sirin-blue); color: white; border-color: var(--sirin-blue); box-shadow: 0 4px 12px rgba(0,61,124,0.25); pointer-events: none; }
-    .page-item.disabled .page-link { opacity: 0.5; pointer-events: none; background: #f8fafc; border-color: var(--border-color); color: #94a3b8; }
+    /* Pagination */
+    .pagination-wrapper { padding: 20px 24px; display: flex; justify-content: center; align-items: center; background: transparent; border-top: 1px solid var(--border-color); }
+    .pagination-info { font-size: 0.9rem; color: #94a3b8; font-weight: 400; }
+    .pagination { display: flex; gap: 4px; list-style: none; padding: 0; margin: 0; align-items: center; }
+    .page-item .page-link { border: none; padding: 6px 14px; border-radius: 8px; color: #64748b; background: transparent; font-weight: 500; font-size: 0.95rem; transition: all 0.2s ease; text-decoration: none; position: relative; }
+    .page-item .page-link:hover { color: var(--sirin-blue); background: #f1f5f9; }
+    
+    /* สไตล์หน้าปัจจุบัน (Active) แบบมินิมอล มีแค่ขีดเส้นใต้บางๆ */
+    .page-item.active .page-link { background: transparent; color: var(--sirin-blue); font-weight: 700; pointer-events: none; }
+    .page-item.active .page-link::after { content: ''; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); width: 16px; height: 2.5px; background-color: var(--sirin-blue); border-radius: 4px; }
+    
+    .page-item.disabled .page-link { opacity: 0.3; pointer-events: none; }
 
     .custom-dialog { border: none; border-radius: 24px; padding: 0; width: 90%; max-width: 500px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); background: white; color: var(--text-dark); }
     .custom-dialog::backdrop { background-color: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); }
@@ -154,6 +159,7 @@
                     <th class="text-start">ORDER ID</th>
                     <th class="text-start">วันที่สั่งซื้อ</th>
                     <th class="text-start">ลูกค้า</th>
+                    <th class="text-start">รายการสินค้า</th>
                     <th class="text-center">รูปแบบ</th>
                     <th class="text-center">ยอดรวม</th>
                     <th class="text-center">สถานะ</th>
@@ -164,7 +170,7 @@
                 @if (!pagedOrders.Any())
                 {
                     <tr>
-                        <td colspan="7" style="text-align: center; padding: 60px 20px; color: #94a3b8;">
+                        <td colspan="8" style="text-align: center; padding: 60px 20px; color: #94a3b8;">
                             <i class="bi bi-inbox" style="font-size: 3.5rem; display: block; margin-bottom: 15px; color: #cbd5e1;"></i>
                             <span style="font-weight: 600; font-size: 1.1rem;">ไม่พบรายการออร์เดอร์ที่ค้นหา</span>
                         </td>
@@ -184,6 +190,16 @@
                                 <div style="font-size: 0.85rem; color: var(--text-muted);">@firstItem.O_OrderDate.ToString("HH:mm") น.</div>
                             </td>
                             <td class="text-start fw-bold" style="color: var(--text-dark);">@firstItem.O_CustomerName</td>
+                            
+                            <td class="text-start">
+                                @foreach (var item in group)
+                                {
+                                    <div class="fw-bold" style="color: var(--text-dark); max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem;">
+                                        • @item.O_ProductName <span style="color: var(--sirin-blue);">(x@(item.O_Quantity))</span>
+                                    </div>
+                                }
+                            </td>
+
                             <td class="text-center">
                                 <span style="background: #f1f5f9; color: #475569; padding: 6px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600;">
                                     <i class="bi @(firstItem.O_PaymentType == "Pickup" ? "bi-shop" : "bi-truck") me-1"></i>
@@ -217,12 +233,12 @@
     @if (totalPages > 1)
     {
         <div class="pagination-wrapper">
-            <div class="pagination-info">
+            @* <div class="pagination-info">
                 แสดงหน้า <span class="fw-bold" style="color: var(--sirin-blue);">@currentPage</span> จาก <span class="fw-bold">@totalPages</span>
-            </div>
+            </div> *@
             <ul class="pagination">
                 <li class="page-item @(currentPage == 1 ? "disabled" : "")">
-                    <a class="page-link" href="?page=@(currentPage - 1)&searchId=@searchId&statusFilter=@statusFilter"><i class="bi bi-chevron-left me-1"></i> ก่อนหน้า</a>
+                    <a class="page-link" href="?page=@(currentPage - 1)&searchId=@searchId&statusFilter=@statusFilter"><i class="bi bi-chevron-left me-1"></i></a>
                 </li>
                 
                 @for (int i = 1; i <= totalPages; i++)
@@ -233,7 +249,7 @@
                 }
 
                 <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
-                    <a class="page-link" href="?page=@(currentPage + 1)&searchId=@searchId&statusFilter=@statusFilter">ถัดไป <i class="bi bi-chevron-right ms-1"></i></a>
+                    <a class="page-link" href="?page=@(currentPage + 1)&searchId=@searchId&statusFilter=@statusFilter"><i class="bi bi-chevron-right ms-1"></i></a>
                 </li>
             </ul>
         </div>
