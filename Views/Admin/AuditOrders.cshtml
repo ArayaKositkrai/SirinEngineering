@@ -1,6 +1,257 @@
+@model List<IGrouping<DateTime, SirinEngineering.Models.db.OrderModel>>
 @{
     Layout = "~/Views/Shared/Layout/_AdminLayout.cshtml";
-    ViewData["Title"] = "Dashboard - Sirin Engineering";
+    ViewData["Title"] = "Audit / Order History";
+
+    // 🌟 ดึงข้อมูล Users มาเตรียมไว้เทียบหา Username
+    var users = ViewBag.Users as List<SirinEngineering.Models.db.UserModel> ?? new List<SirinEngineering.Models.db.UserModel>();
+
+    // 🌟 รับค่าค้นหา
+    string searchKeyword = Context.Request.Query["searchKeyword"].ToString();
+
+    // 🌟 ลอจิก Pagination (แบ่งหน้า) แบบเดียวกับ StockCheck
+    int pageSize = 5; 
+    int currentPage = 1;
+    if (Context.Request.Query.ContainsKey("page")) {
+        int.TryParse(Context.Request.Query["page"], out currentPage);
+    }
+    if (currentPage < 1) currentPage = 1;
+
+    int totalItems = Model?.Count ?? 0;
+    int totalPages = totalItems > 0 ? (int)Math.Ceiling(totalItems / (double)pageSize) : 1;
+    
+    // ดึงเฉพาะออร์เดอร์ในหน้านั้นๆ มาแสดง
+    var pagedOrders = Model?.Skip((currentPage - 1) * pageSize).Take(pageSize).ToList() ?? new();
 }
 
-อันนี้เป็นหน้า Audit Orders สำหรับผู้ดูแลระบบ (Admin) ซึ่งจะแสดงรายการออเดอร์ทั้งหมดที่เกิดขึ้นในระบบ โดยจะมีข้อมูลเช่น หมายเลขออเดอร์, ชื่อผู้สั่งซื้อ, วันที่สั่งซื้อ, สถานะการชำระเงิน และสถานะการจัดส่ง เพื่อให้ผู้ดูแลระบบสามารถตรวจสอบและจัดการออเดอร์ได้อย่างมีประสิทธิภาพ
+<style>
+    /* 🌟 PREMIUM MINIMALIST STYLES 🌟 */
+    :root { 
+        --sirin-blue: #003D7C; 
+        --bg-light: #f8fafc; 
+        --text-dark: #0f172a; 
+        --page-text-muted: #64748b; 
+        --border-color: #e2e8f0; 
+    }
+    
+    .card-premium { border: none; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); background: white; overflow: hidden; }
+    
+    /* Table Styles */
+    .table { width: 100%; border-collapse: collapse; margin-bottom: 0; }
+    .table thead th { background-color: var(--bg-light); color: var(--page-text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; padding: 18px 20px; border-bottom: 2px solid var(--border-color); letter-spacing: 0.5px; }
+    .table tbody td { padding: 18px 20px; vertical-align: middle; border-bottom: 1px solid #f1f5f9; transition: background-color 0.2s ease; }
+    .table tbody tr:hover td { background-color: #f8fafc; } /* Hover Effect มินิมอล */
+    
+    /* Badges */
+    .pill-badge { border-radius: 50px; padding: 6px 14px; font-size: 0.8rem; font-weight: 600; display: inline-block; letter-spacing: 0.2px; }
+    .bg-soft-info { background-color: #F0F9FF; color: #0284C7;}
+    .bg-soft-secondary { background-color: #F1F5F9; color: #475569; }
+
+    /* Button */
+    .btn-receipt { background: transparent; color: var(--sirin-blue); border-radius: 8px; border: 1px solid transparent; padding: 6px 14px; font-weight: 600; font-size: 0.85rem; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-receipt:hover { background: #f1f5f9; border-color: #cbd5e1; }
+
+    /* Search Bar */
+    .search-container { display: flex; align-items: center; background: white; border: 1px solid var(--border-color); border-radius: 12px; height: 45px; padding-left: 15px; overflow: hidden; width: 300px; }
+    .search-bar { border: none; background: transparent; padding: 10px 15px 10px 10px; font-size: 0.95rem; width: 100%; font-weight: 500; outline: none; }
+
+    /* 🌟 Minimal Pagination เหมือนหน้า StockCheck 🌟 */
+    .pagination-wrapper { padding: 20px 24px; display: flex; justify-content: center; align-items: center; background: transparent; border-top: 1px solid var(--border-color); }
+    .pagination { display: flex; gap: 4px; list-style: none; padding: 0; margin: 0; align-items: center; }
+    .page-item .page-link { border: none; padding: 6px 14px; border-radius: 8px; color: #64748b; background: transparent; font-weight: 500; font-size: 0.95rem; transition: all 0.2s ease; text-decoration: none; position: relative; }
+    .page-item .page-link:hover { color: var(--sirin-blue); background: #f1f5f9; }
+    .page-item.active .page-link { background: transparent; color: var(--sirin-blue); font-weight: 700; pointer-events: none; }
+    .page-item.active .page-link::after { content: ''; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); width: 16px; height: 2.5px; background-color: var(--sirin-blue); border-radius: 4px; }
+    .page-item.disabled .page-link { opacity: 0.3; pointer-events: none; }
+
+    /* ใบเสร็จ Dialog */
+    .receipt-dialog { border: none; border-radius: 16px; padding: 0; width: 95%; max-width: 550px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); background: white; color: var(--text-dark); }
+    .receipt-dialog::backdrop { background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
+    .receipt-content { padding: 40px; }
+    .invoice-header { text-align: center; margin-bottom: 30px; border-bottom: 2px dashed var(--border-color); padding-bottom: 20px; }
+    .company-name { font-size: 1.25rem; font-weight: 800; color: var(--sirin-blue); margin-bottom: 5px; }
+    .invoice-table { width: 100%; margin-bottom: 20px; }
+    .invoice-table th { border-bottom: 1px solid var(--text-dark); padding: 8px 0; font-size: 0.85rem; color: #64748b; }
+    .invoice-table td { padding: 12px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
+    .invoice-total { display: flex; justify-content: space-between; font-weight: 800; font-size: 1.1rem; padding-top: 15px; border-top: 2px solid var(--text-dark); margin-top: 10px; }
+    .btn-close-circle { background: #f1f5f9; border: none; border-radius: 50%; width: 36px; height: 36px; position: absolute; top: 15px; right: 15px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; color: #64748b; }
+    .btn-close-circle:hover { background: #e2e8f0; transform: rotate(90deg); color: #0f172a; }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <h3 class="fw-bold mb-0" style="color: var(--sirin-blue);">
+        Order Audit
+    </h3>
+    
+    <form method="get" class="m-0">
+        <div class="search-container shadow-sm">
+            <i class="bi bi-search text-muted"></i>
+            <input type="text" name="searchKeyword" value="@searchKeyword" class="search-bar" placeholder="ค้นหาเลขบิล, ชื่อลูกค้า..." onchange="this.form.submit()" />
+        </div>
+    </form>
+</div>
+
+<div class="card card-premium">
+    <div style="overflow-x: auto;">
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th class="text-start">เลขที่บิล (ID)</th>
+                    <th class="text-start">วันที่ทำรายการ</th>
+                    <th class="text-start">ชื่อลูกค้า</th>
+                    <th class="text-start">ผู้ทำรายการ</th>
+                    <th class="text-center">ยอดรวม</th>
+                    <th class="text-center">รูปแบบ</th>
+                    <th class="text-end">เอกสาร</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!pagedOrders.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="text-center" style="padding: 60px 20px; color: #94a3b8;">
+                            <i class="bi bi-folder-x" style="font-size: 3.5rem; display: block; margin-bottom: 15px; color: #cbd5e1;"></i>
+                            <span style="font-weight: 600; font-size: 1.1rem;">ไม่พบประวัติการขายที่ค้นหา</span>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var group in pagedOrders)
+{
+    var firstItem = group.First();
+    var totalAmount = group.Sum(x => x.O_TotalAmount);
+    
+    // 🌟 เปลี่ยนลอจิกเช็คชื่อคนขายใหม่ตรงนี้
+    string sellerName = !string.IsNullOrEmpty(firstItem.O_SellerName) 
+                        ? firstItem.O_SellerName 
+                        : "สั่งซื้อออนไลน์"; 
+
+    string badgeClass = !string.IsNullOrEmpty(firstItem.O_SellerName) 
+                        ? "bg-soft-user"       // สีม่วงสำหรับพนักงานขาย
+                        : "bg-soft-secondary"; // สีเทาสำหรับออนไลน์
+
+    <tr>
+        <td class="text-start fw-bold" style="color: var(--sirin-blue);">#ORD-@firstItem.O_OrderID</td>
+        <td class="text-start">
+            <div style="font-weight: 600; color: var(--text-dark);">@firstItem.O_OrderDate.ToString("dd/MM/yyyy")</div>
+            <div style="font-size: 0.85rem; color: var(--page-text-muted);">@firstItem.O_OrderDate.ToString("HH:mm") น.</div>
+        </td>
+        <td class="text-start fw-bold" style="color: var(--text-dark);">@firstItem.O_CustomerName</td>
+        
+        <td class="text-start">
+            <span class="pill-badge @badgeClass">
+                <i class="bi @(!string.IsNullOrEmpty(firstItem.O_SellerName) ? "bi-person-badge" : "bi-globe") me-1"></i> 
+                @sellerName
+            </span>
+        </td>
+
+        <td class="text-center fw-bold" style="color: #059669; font-size: 1.05rem;">฿@totalAmount.ToString("N0")</td>
+        <td class="text-center">
+            <span class="pill-badge @(firstItem.O_PaymentType == "Pickup" ? "bg-soft-info" : "bg-soft-secondary")">
+                <i class="bi @(firstItem.O_PaymentType == "Pickup" ? "bi-shop" : "bi-truck") me-1"></i>
+                @(firstItem.O_PaymentType == "Pickup" ? "รับที่ร้าน" : "จัดส่ง")
+            </span>
+        </td>
+        <td class="text-end">
+            <button type="button" class="btn-receipt" onclick="document.getElementById('receipt-@firstItem.O_OrderID').showModal()">
+                <i class="bi bi-receipt"></i> ดูใบสั่งซื้อ
+            </button>
+        </td>
+    </tr>
+}
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (totalPages > 1)
+    {
+        <div class="pagination-wrapper">
+            <ul class="pagination">
+                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                    <a class="page-link" href="?page=@(currentPage - 1)&searchKeyword=@searchKeyword"><i class="bi bi-chevron-left"></i></a>
+                </li>
+                
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <li class="page-item @(i == currentPage ? "active" : "")">
+                        <a class="page-link" href="?page=@i&searchKeyword=@searchKeyword">@i</a>
+                    </li>
+                }
+
+                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                    <a class="page-link" href="?page=@(currentPage + 1)&searchKeyword=@searchKeyword"><i class="bi bi-chevron-right"></i></a>
+                </li>
+            </ul>
+        </div>
+    }
+</div>
+
+@if (pagedOrders.Any())
+{
+    @foreach (var group in pagedOrders)
+    {
+        var firstItem = group.First();
+        var totalAmount = group.Sum(x => x.O_TotalAmount);
+        
+        // 🌟 เทียบหา Username ไปแสดงในใบเสร็จด้วย
+        var seller = users.FirstOrDefault(u => u.U_UserID == firstItem.O_UserID);
+        string sellerUsername = seller != null ? seller.U_Username : "-";
+
+        <dialog id="receipt-@firstItem.O_OrderID" class="receipt-dialog">
+            <button type="button" class="btn-close-circle" onclick="document.getElementById('receipt-@firstItem.O_OrderID').close()"><i class="bi bi-x-lg"></i></button>
+            
+            <div class="receipt-content">
+                <div class="invoice-header">
+                    <div class="company-name">SIRIN ENGINEERING CO., LTD.</div>
+                    <div class="small text-muted mb-2">ใบสรุปรายการสั่งซื้อ / Invoice</div>
+                    <div class="badge bg-light text-dark border px-3 py-2 mt-2" style="font-size: 0.9rem;">
+                        ORDER ID: <span class="fw-bold text-primary">#ORD-@firstItem.O_OrderID</span>
+                    </div>
+                </div>
+
+                <div class="row mb-4 small">
+                    <div class="col-6">
+                        <div class="text-muted">ลูกค้า:</div>
+                        <div class="fw-bold fs-6" style="color: var(--text-dark);">@firstItem.O_CustomerName</div>
+                    </div>
+                    <div class="col-6 text-end">
+                        <div class="text-muted">วันที่สั่งซื้อ:</div>
+                        <div class="fw-bold" style="color: var(--text-dark);">@firstItem.O_OrderDate.ToString("dd MMM yyyy, HH:mm")</div>
+                        <div class="text-muted mt-1">ประเภท: @(firstItem.O_PaymentType == "Pickup" ? "มารับที่หน้าร้าน" : "จัดส่งตามที่อยู่")</div>
+                    </div>
+                </div>
+
+                <table class="invoice-table">
+                    <thead>
+                        <tr>
+                            <th class="text-start">รายการสินค้า (Item)</th>
+                            <th class="text-center">จำนวน</th>
+                            <th class="text-end">รวม</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach(var item in group)
+                        {
+                            <tr>
+                                <td class="text-start fw-bold" style="color: var(--text-dark);">@item.O_ProductName</td>
+                                <td class="text-center text-muted">@item.O_Quantity</td>
+                                <td class="text-end" style="color: var(--text-dark);">฿@item.O_TotalAmount.ToString("N0")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                <div class="invoice-total">
+                    <span>ยอดชำระสุทธิ (Grand Total)</span>
+                    <span style="color: var(--sirin-blue);">฿@totalAmount.ToString("N0")</span>
+                </div>
+                
+                <div class="text-center mt-4 small text-muted">
+                    * เอกสารนี้ใช้สำหรับการตรวจสอบภายในระบบ (Audit View)
+                </div>
+            </div>
+        </dialog>
+    }
+}

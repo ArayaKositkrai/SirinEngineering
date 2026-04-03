@@ -1,10 +1,13 @@
 using System.ComponentModel.DataAnnotations;
-namespace SirinEngineering.Models.db {
-    public class OrderModel {
+namespace SirinEngineering.Models.db
+{
+    public class OrderModel
+    {
         [Key]
         public int O_OrderID { get; set; }
         public DateTime O_OrderDate { get; set; } = DateTime.Now;
         public string O_CustomerName { get; set; }
+        public string? O_SellerName { get; set; }
         public int O_ProductID { get; set; }
         public string O_ProductName { get; set; }
         public int O_Quantity { get; set; }
