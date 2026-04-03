@@ -13,17 +13,84 @@ namespace SirinEngineering.Controllers
             _db = db;
         }
 
-        public IActionResult Dashboard()
+[HttpGet]
+    public IActionResult Dashboard(DateTime? exactDate, int? month, int? year)
+    {
+        var orders = _db.TBL_Order.AsQueryable();
+        var today = DateTime.Today;
+
+        // 🌟 1. ลอจิกการกรองตามที่คุณต้องการเป๊ะๆ
+        if (exactDate.HasValue) 
         {
-            return View();
+            // ถ้าเลือกแบบเจาะจงวัน ให้ดูแค่วันนั้น
+            orders = orders.Where(o => o.O_OrderDate.Date == exactDate.Value.Date);
+        }
+        else if (month.HasValue && year.HasValue)
+        {
+            // ถ้าเลือกทั้งเดือนและปี
+            orders = orders.Where(o => o.O_OrderDate.Month == month.Value && o.O_OrderDate.Year == year.Value);
+        }
+        else if (year.HasValue)
+        {
+            // ถ้าเลือกแค่ปี ให้โชว์ทั้งปีนั้น
+            orders = orders.Where(o => o.O_OrderDate.Year == year.Value);
+        }
+        else if (month.HasValue)
+        {
+            // ถ้าเลือกแค่เดือน ให้ดึงเดือนนั้นของ "ปีปัจจุบัน"
+            orders = orders.Where(o => o.O_OrderDate.Month == month.Value && o.O_OrderDate.Year == today.Year);
+        }
+        else
+        {
+            // Default (เปิดมาตอนแรก): เป็นวันนี้
+            orders = orders.Where(o => o.O_OrderDate.Date == today);
         }
 
-        // public IActionResult StaffManage()
-        // {
-        //     var staffList = _db.TBL_User.Where(u => u.U_RoleID == 1 || u.U_RoleID == 2).ToList();
-        //     return View(staffList);
-        // }
-        // ดึงข้อมูลมาโชว์
+        // 2. คำนวณรายได้ทั้งหมด
+        decimal totalRevenue = orders.Sum(o => (decimal?)o.O_TotalAmount) ?? 0;
+
+        // 3. คำนวณจำนวนออร์เดอร์
+        int orderCount = orders.GroupBy(o => o.O_OrderDate).Count();
+
+        // 4. คำนวณต้นทุนและกำไร 
+        var orderWithProducts = from o in orders
+                                join p in _db.TBL_Product on o.O_ProductID equals p.PD_ProductID
+                                select new { o.O_Quantity, o.O_TotalAmount, p.PD_Cost };
+
+        decimal totalCost = orderWithProducts.Sum(x => (decimal?)(x.O_Quantity * x.PD_Cost)) ?? 0;
+        decimal totalProfit = totalRevenue - totalCost;
+
+        // 5. สินค้าขายดี Top 5
+        var topSelling = (from o in orders
+                          join p in _db.TBL_Product on o.O_ProductID equals p.PD_ProductID
+                          group new { o, p } by new { p.PD_ProductID, p.PD_ProductName, p.Category.C_CategoryName, p.PD_Cost } into g
+                          select new {
+                              Name = g.Key.PD_ProductName,
+                              Category = g.Key.C_CategoryName ?? "-",
+                              UnitCost = g.Key.PD_Cost,
+                              Qty = g.Sum(x => x.o.O_Quantity),
+                              TotalCost = g.Sum(x => x.o.O_Quantity * g.Key.PD_Cost),
+                              TotalSales = g.Sum(x => x.o.O_TotalAmount),
+                              TotalProfit = g.Sum(x => x.o.O_TotalAmount) - g.Sum(x => x.o.O_Quantity * g.Key.PD_Cost)
+                          })
+                          .OrderByDescending(x => x.Qty)
+                          .Take(5)
+                          .ToList();
+
+        // 🌟 ส่งค่ากลับไปเพื่อให้ Dropdown คงค่าเดิมที่ถูกเลือกไว้
+        ViewBag.ExactDate = exactDate?.ToString("yyyy-MM-dd");
+        ViewBag.Month = month;
+        ViewBag.Year = year;
+
+        ViewBag.Revenue = totalRevenue;
+        ViewBag.OrderCount = orderCount;
+        ViewBag.Cost = totalCost;
+        ViewBag.Profit = totalProfit;
+        ViewBag.TopSelling = topSelling;
+
+        return View();
+    }
+
         [HttpGet]
         public IActionResult EditStaff(int id)
         {

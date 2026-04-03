@@ -1,26 +1,161 @@
 @{
-    Layout = "~/Views/Shared/Layout/_AdminLayout.cshtml";
-    ViewData["Title"] = "Dashboard - Sirin Engineering";
+    Layout = "~/Views/Shared/Layout/_AdminLayout.cshtml"; // เปลี่ยนตาม Layout ของ Admin ของคุณ
+    ViewData["Title"] = "Dashboard";
+    
+    string currentFilter = ViewBag.Filter ?? "today";
+    var topSelling = ViewBag.TopSelling as IEnumerable<dynamic>;
 }
 
-<div style="padding: 20px;">
-    <h2 class="fw-bold mb-0" style="color: #003D7C;">Dashboard</h2>
-    <p style="color: #7F7F7F;">
-    ยินดีต้อนรับ @User.Identity.Name เข้าสู่ระบบจัดการ Sirin Engineering
-</p>
+<style>
+    :root { 
+        --sirin-blue: #003D7C; 
+        --bg-light: #f8fafc;
+    }
+    .dash-card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid #f1f5f9; position: relative; overflow: hidden; }
+    .dash-icon { width: 50px; height: 50px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+    .icon-revenue { background: #ECFDF5; color: #059669; }
+    .icon-orders { background: #EFF6FF; color: #2563EB; }
+    .icon-cost { background: #FEF2F2; color: #DC2626; }
+    .icon-profit { background: #FFFBEB; color: #D97706; }
     
-    <hr style="border: 1px solid #ddd;" />
+    .dash-title { font-size: 0.9rem; color: #64748b; font-weight: 600; margin-bottom: 5px; }
+    .dash-value { font-size: 1.8rem; font-weight: 800; color: #0f172a; margin: 0; }
+    
+    .filter-select { 
+        border-radius: 12px; padding: 10px 15px; border: 1px solid var(--border-color); 
+        background-color: white; font-size: 0.9rem; color: #475569; outline: none; height: 45px;
+    }
+    .filter-select:focus { border-color: var(--sirin-blue); }
+</style>
 
-    <div style="display: flex; gap: 20px; margin-top: 20px;">
-        @* Card แสดงผลแบบ No-Script *@
-        <div style="flex: 1; background: #fff; border-left: 5px solid #003D7C; padding: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-            <h4 style="margin: 0; color: #7F7F7F;">ยอดขายรวมวันนี้</h4>
-            <h2 style="margin: 10px 0; color: #003D7C;">0.00 ฿</h2>
-        </div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold mb-0" style="color: var(--sirin-blue);">Dashboard</h3>
+    
+    <form method="get" class="d-flex flex-wrap align-items-center gap-2 m-0">
+        
+        <input type="date" name="exactDate" value="@ViewBag.ExactDate" class="filter-select shadow-sm" title="เลือกวันที่เจาะจง" />
 
-        <div style="flex: 1; background: #fff; border-left: 5px solid #7F7F7F; padding: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-            <h4 style="margin: 0; color: #7F7F7F;">จำนวนออเดอร์</h4>
-            <h2 style="margin: 10px 0; color: #333;">0 รายการ</h2>
+        <span class="text-muted small fw-bold px-1">หรือ</span>
+
+        <select name="month" class="filter-select shadow-sm">
+            <option value="">ทุกเดือน</option>
+            <option value="1" selected="@(ViewBag.Month == 1)">มกราคม</option>
+            <option value="2" selected="@(ViewBag.Month == 2)">กุมภาพันธ์</option>
+            <option value="3" selected="@(ViewBag.Month == 3)">มีนาคม</option>
+            <option value="4" selected="@(ViewBag.Month == 4)">เมษายน</option>
+            <option value="5" selected="@(ViewBag.Month == 5)">พฤษภาคม</option>
+            <option value="6" selected="@(ViewBag.Month == 6)">มิถุนายน</option>
+            <option value="7" selected="@(ViewBag.Month == 7)">กรกฎาคม</option>
+            <option value="8" selected="@(ViewBag.Month == 8)">สิงหาคม</option>
+            <option value="9" selected="@(ViewBag.Month == 9)">กันยายน</option>
+            <option value="10" selected="@(ViewBag.Month == 10)">ตุลาคม</option>
+            <option value="11" selected="@(ViewBag.Month == 11)">พฤศจิกายน</option>
+            <option value="12" selected="@(ViewBag.Month == 12)">ธันวาคม</option>
+        </select>
+
+        <select name="year" class="filter-select shadow-sm">
+            <option value="">ทุกปี</option>
+            @{
+                // สร้างตัวเลือกปีแบบไดนามิก (ถอยหลัง 3 ปี ไปจนถึงล่วงหน้า 2 ปี)
+                int currentYear = DateTime.Today.Year;
+                for (int y = currentYear - 3; y <= currentYear + 2; y++)
+                {
+                    <option value="@y" selected="@(ViewBag.Year == y)">@y</option>
+                }
+            }
+        </select>
+
+        <button type="submit" class="btn btn-sirin shadow-sm" style="border-radius: 12px; height: 45px; padding: 0 20px; font-weight: 600;">
+            <i class="bi bi-funnel-fill me-1"></i>
+        </button>
+        <a href="?" class="btn btn-light border shadow-sm" style="border-radius: 12px; height: 45px; padding: 10px 20px; font-weight: normal; color: #475569; text-decoration: none;">
+            เคลียร์/ดูของวันนี้
+        </a>
+    </form>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="dash-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="dash-title">รายได้รวม</div>
+                    <h3 class="dash-value">฿@ViewBag.Revenue.ToString("N0")</h3>
+                </div>
+                <div class="dash-icon icon-revenue"><i class="bi bi-cash-stack"></i></div>
+            </div>
         </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="dash-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="dash-title">จำนวนออร์เดอร์</div>
+                    <h3 class="dash-value">@ViewBag.OrderCount.ToString("N0") <span style="font-size: 1rem; color: #94a3b8;">บิล</span></h3>
+                </div>
+                <div class="dash-icon icon-orders"><i class="bi bi-receipt-cutoff"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="dash-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="dash-title">ต้นทุนสินค้า</div>
+                    <h3 class="dash-value">฿@ViewBag.Cost.ToString("N0")</h3>
+                </div>
+                <div class="dash-icon icon-cost"><i class="bi bi-graph-down-arrow"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="dash-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="dash-title">กำไรสุทธิ</div>
+                    <h3 class="dash-value">฿@ViewBag.Profit.ToString("N0")</h3>
+                </div>
+                <div class="dash-icon icon-profit"><i class="bi bi-piggy-bank"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="dash-card p-4">
+    <h5 class="fw-bold mb-4" style="color: #334155;">สินค้าขายดี 5 อันดับแรก</h5>
+    <div class="table-responsive">
+        <table class="table table-borderless mb-0">
+            <thead style="border-bottom: 2px solid #f1f5f9; color: #94a3b8; font-size: 0.85rem;">
+                <tr>
+                    <th>ชื่อสินค้า</th>
+                    <th>หมวดหมู่</th>
+                    <th class="text-center">จำนวน (ชิ้น)</th>
+                    <th class="text-end">ต้นทุน/ชิ้น</th>
+                    <th class="text-end">ต้นทุนรวม</th>
+                    <th class="text-end">ยอดขายรวม</th>
+                    <th class="text-end">กำไร</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (topSelling != null)
+                {
+                    foreach (var item in topSelling)
+                    {
+                        <tr style="border-bottom: 1px solid #f8fafc;">
+                            <td class="fw-bold py-3" style="color: #0f172a;">@item.Name</td>
+                            <td class="py-3" style="color: #64748b; font-size: 0.9rem;">@item.Category</td>
+                            <td class="text-center fw-bold text-primary py-3">@item.Qty</td>
+                            <td class="text-end py-3 text-muted">฿@item.UnitCost.ToString("N0")</td> 
+                            <td class="text-end fw-bold py-3" style="color: #dc2626;">฿@item.TotalCost.ToString("N0")</td>
+                            <td class="text-end fw-bold py-3" style="color: #059669;">฿@item.TotalSales.ToString("N0")</td>
+                            <td class="text-end fw-bold py-3" style="color: #d97706;">฿@item.TotalProfit.ToString("N0")</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
     </div>
 </div>
