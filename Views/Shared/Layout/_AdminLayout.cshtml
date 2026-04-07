@@ -106,13 +106,7 @@
             @* <img src="~/images/Logo.jpg" alt="Logo" /> *@
             <h4 class="fw-bold mb-0">Admin Panel</h4>
         </div>
-
-        @* <div class="sidebar-header d-flex align-items-center justify-content-between">
-            <div class="d-flex align-items-center gap-2">
-                <img src="~/images/Logo.jpg" alt="Logo" style="height: 36px; width: 36px;" />
-                <h4 class="fw-bold mb-0">Admin Panel</h4>
-            </div> *@
-            
+        
         <ul class="nav-menu">
             <li class="nav-item"><a asp-controller="Admin" asp-action="Dashboard">Dashboard</a></li>
             <li class="nav-item"><a asp-controller="Admin" asp-action="StaffManage">Staff Management</a></li>
@@ -123,11 +117,22 @@
         </ul>
     </div>
     <div class="main-content">
-        <div class="top-bar">
-            <span style="color: var(--admin-blue); font-weight: bold;">Sirin Engineering System</span>
-            <a asp-controller="Account" asp-action="Logout" class="btn btn-danger">
-                ออกจากระบบ
-            </a>
+        <div class="top-bar align-items-center">
+            <span style="color: var(--admin-blue); font-weight: bold; font-size: 1.1rem;">Sirin Engineering System</span>
+         
+            <div class="d-flex align-items-center gap-3">
+                @if (User.Identity != null && User.Identity.IsAuthenticated)
+                {
+                    <span class="fw-bold" style="color: var(--admin-grey);">
+                        <i class="bi bi-person-circle me-1" style="font-size: 1.1rem;"></i> 
+                        @User.Identity.Name
+                    </span>
+                }
+
+                <a asp-controller="Account" asp-action="Logout" class="btn btn-danger btn-sm px-3 fw-bold shadow-sm" style="border-radius: 8px;">
+                    <i class="bi bi-box-arrow-right me-1"></i> ออกจากระบบ
+                </a>
+            </div>
         </div>
         <div style="padding: 30px;">
             @RenderBody()

@@ -37,7 +37,7 @@
     .pill-badge { border-radius: 50px; padding: 6px 14px; font-size: 0.8rem; font-weight: 600; display: inline-block; letter-spacing: 0.2px; }
     .bg-soft-info { background-color: #F0F9FF; color: #0284C7;}
     .bg-soft-secondary { background-color: #F1F5F9; color: #475569; }
-    .bg-soft-success { background-color: #ECFDF5; color: #059669; } /* 🌟 เพิ่มสีสำหรับ Walk-in */
+    .bg-soft-success { background-color: #ECFDF5; color: #059669; } /*  เพิ่มสีสำหรับ Walk-in */
 
     .btn-receipt { background: transparent; color: var(--sirin-blue); border-radius: 8px; border: 1px solid transparent; padding: 6px 14px; font-weight: 600; font-size: 0.85rem; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px; }
     .btn-receipt:hover { background: #f1f5f9; border-color: #cbd5e1; }
@@ -63,7 +63,7 @@
     .invoice-table td { padding: 12px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
     .invoice-total { display: flex; justify-content: space-between; font-weight: 800; font-size: 1.1rem; padding-top: 15px; border-top: 2px solid var(--text-dark); margin-top: 10px; }
     .btn-close-circle { background: #f1f5f9; border: none; border-radius: 50%; width: 36px; height: 36px; position: absolute; top: 15px; right: 15px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; color: #64748b; }
-    .btn-close-circle:hover { background: #e2e8f0; transform: rotate(90deg); color: #0f172a; }
+    @* .btn-close-circle:hover { background: #e2e8f0; transform: rotate(90deg); color: #0f172a; } *@
 </style>
 
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
@@ -113,7 +113,7 @@
                         string sellerName = !string.IsNullOrEmpty(firstItem.O_SellerName) ? firstItem.O_SellerName : "สั่งซื้อออนไลน์"; 
                         string sellerBadge = !string.IsNullOrEmpty(firstItem.O_SellerName) ? "bg-soft-user" : "bg-soft-secondary";
 
-                        // 🌟 จัดการสถานะรูปแบบการซื้อ (เพิ่ม Walk-in) 🌟
+                        //  จัดการสถานะรูปแบบการซื้อ (เพิ่ม Walk-in) 
                         string ptBadge = "bg-soft-secondary";
                         string ptIcon = "bi-truck";
                         string ptText = "จัดส่ง";
@@ -269,7 +269,7 @@
                 </div>
                 
                 <div class="text-center mt-4 small text-muted">
-                    * เอกสารนี้ใช้สำหรับการตรวจสอบภายในระบบ (Audit View)
+                    *เอกสารนี้ใช้สำหรับการตรวจสอบภายในระบบ (Audit View)*
                 </div>
             </div>
         </dialog>

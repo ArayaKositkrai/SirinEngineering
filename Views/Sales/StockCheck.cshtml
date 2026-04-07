@@ -11,7 +11,7 @@
                                   .OrderBy(c => c)
                                   .ToList();
 
-    // 🌟 รับค่าค้นหาและฟิลเตอร์ 🌟
+    //  รับค่าค้นหาและฟิลเตอร์ 
     string searchKeyword = Context.Request.Query["searchKeyword"].ToString()?.ToLower();
     string categoryFilter = Context.Request.Query["categoryFilter"].ToString();
     string stockFilter = Context.Request.Query["stockFilter"].ToString(); // รับค่าสถานะสต๊อก
@@ -31,7 +31,7 @@
         allProducts = allProducts.Where(p => p.Category?.C_CategoryName == categoryFilter).ToList();
     }
 
-    // 🌟 ลอจิกการกรองตามสถานะสต๊อก 🌟
+    //  ลอจิกการกรองตามสถานะสต๊อก 
     if (!string.IsNullOrEmpty(stockFilter) && stockFilter != "all")
     {
         allProducts = allProducts.Where(p => {
@@ -83,7 +83,7 @@
     .product-img-wrapper { width: 45px; height: 45px; border-radius: 10px; overflow: hidden; border: 1px solid #e2e8f0; background: #f8fafc; display: flex; align-items: center; justify-content: center; }
     .product-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
 
-    /* 🌟 Search & Filter 🌟 */
+    /*  Search & Filter  */
     .filter-select { border-radius: 12px; padding: 10px 35px 10px 15px; border: 1px solid var(--border-color); background-color: white; font-weight: normal; font-size: 0.9rem; color: #475569; min-width: 180px; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2364748b' class='bi bi-chevron-down' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 15px center; background-size: 14px; outline: none; height: 45px; }
     .filter-select:focus { border-color: var(--sirin-blue); }
 

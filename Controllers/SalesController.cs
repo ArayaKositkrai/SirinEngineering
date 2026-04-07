@@ -17,7 +17,7 @@ namespace SirinEngineering.Controllers
             _db = db;
         }
 
-        // 🌟 1. ฟังก์ชันเปิดหน้า POS (Shop) ที่หายไป เติมกลับมาให้แล้วครับ!
+        //  1. ฟังก์ชันเปิดหน้า POS (Shop) ที่หายไป เติมกลับมาให้แล้วครับ!
         [HttpGet]
         public IActionResult Shop()
         {
@@ -38,8 +38,8 @@ namespace SirinEngineering.Controllers
         public class POSCheckoutRequest {
             public List<POSCartItem> Items { get; set; }
             public string CustomerName { get; set; }
-            public decimal DiscountAmount { get; set; } // 🌟 รับค่าส่วนลด
-            public string GiftItemName { get; set; }    // 🌟 รับค่าของแถม
+            public decimal DiscountAmount { get; set; } //  รับค่าส่วนลด
+            public string GiftItemName { get; set; }    //  รับค่าของแถม
         }
         public class POSCartItem {
             public int ProductId { get; set; }
@@ -84,7 +84,7 @@ namespace SirinEngineering.Controllers
 
                             decimal subTotal = product.PD_Price * item.Qty;
                             
-                            // 🌟 คำนวณส่วนลดเฉลี่ยตามสัดส่วนราคาสินค้า
+                            //  คำนวณส่วนลดเฉลี่ยตามสัดส่วนราคาสินค้า
                             decimal lineDiscount = totalOrderValue > 0 ? (subTotal / totalOrderValue) * request.DiscountAmount : 0;
                             decimal netTotal = subTotal - lineDiscount;
 
@@ -101,7 +101,7 @@ namespace SirinEngineering.Controllers
                                 O_OrderDate = now, 
                                 O_CustomerName = cusName,
                                 
-                                // 🌟 แก้ไข 2 บรรทัดนี้สำหรับลูกค้าหน้าร้าน 🌟
+                                //  แก้ไข 2 บรรทัดนี้สำหรับลูกค้าหน้าร้าน 
                                 O_PaymentType = "Walk-in", 
                                 O_Status = "ชำระแล้ว",
                                 
@@ -132,7 +132,7 @@ namespace SirinEngineering.Controllers
             }
         }
 
-        // 🌟 ฟังก์ชันเช็คโค้ดส่วนลด (อิงจาก PromotionModel ของจริง)
+        //  ฟังก์ชันเช็คโค้ดส่วนลด (อิงจาก PromotionModel ของจริง)
         [HttpGet]
         public IActionResult CheckPromotion(string code, decimal cartTotal)
         {

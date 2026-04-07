@@ -19,7 +19,7 @@ namespace SirinEngineering.Controllers
             var orders = _db.TBL_Order.AsQueryable();
             var today = DateTime.Today;
 
-            // 🌟 1. ลอจิกการกรองตามที่คุณต้องการเป๊ะๆ
+            //  1. ลอจิกการกรองตามที่คุณต้องการเป๊ะๆ
             if (exactDate.HasValue)
             {
                 // ถ้าเลือกแบบเจาะจงวัน ให้ดูแค่วันนั้น
@@ -78,7 +78,7 @@ namespace SirinEngineering.Controllers
                               .Take(5)
                               .ToList();
 
-            // 🌟 ส่งค่ากลับไปเพื่อให้ Dropdown คงค่าเดิมที่ถูกเลือกไว้
+            //  ส่งค่ากลับไปเพื่อให้ Dropdown คงค่าเดิมที่ถูกเลือกไว้
             ViewBag.ExactDate = exactDate?.ToString("yyyy-MM-dd");
             ViewBag.Month = month;
             ViewBag.Year = year;

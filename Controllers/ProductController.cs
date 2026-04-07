@@ -225,11 +225,11 @@ public class ProductController : Controller
             }
         }
 
-        // 🌟 เก็บรายการสินค้าและรูปแบบการส่ง (Pickup/Delivery) ลง Session
+        //  เก็บรายการสินค้าและรูปแบบการส่ง (Pickup/Delivery) ลง Session
         HttpContext.Session.SetString("CheckoutItems", JsonConvert.SerializeObject(checkoutItems));
         HttpContext.Session.SetString("ShippingMethod", ShippingMethod ?? "Delivery");
 
-        // 🌟 ไม่ต้องบันทึก DB ตรงนี้แล้ว! บังคับไปหน้า Checkout เสมอ
+        //  ไม่ต้องบันทึก DB ตรงนี้แล้ว! บังคับไปหน้า Checkout เสมอ
         return RedirectToAction("Checkout");
     }
 
@@ -254,14 +254,14 @@ public class ProductController : Controller
         var user = _db.TBL_User.FirstOrDefault(u => u.U_Username == currentUsername);
         var checkoutJson = HttpContext.Session.GetString("CheckoutItems");
         
-        // 🌟 ดึงรูปแบบการส่งจาก Session มาเช็ค
+        //  ดึงรูปแบบการส่งจาก Session มาเช็ค
         var shippingMethod = HttpContext.Session.GetString("ShippingMethod") ?? "Delivery"; 
 
         if (string.IsNullOrEmpty(checkoutJson)) return RedirectToAction("Cart");
 
         var checkoutItems = JsonConvert.DeserializeObject<List<CartItemViewModel>>(checkoutJson);
 
-        // 🌟 อัปเดตที่อยู่เฉพาะตอนเลือก "จัดส่ง"
+        //  อัปเดตที่อยู่เฉพาะตอนเลือก "จัดส่ง"
         if (user != null && shippingMethod == "Delivery")
         {
             user.U_Address = U_Address;
@@ -282,7 +282,7 @@ public class ProductController : Controller
                 O_Price = item.Price,
                 O_SubTotal = item.Price * item.Quantity,
                 O_TotalAmount = item.Price * item.Quantity,
-                O_PaymentType = shippingMethod, // 🌟 ใช้ค่าจาก Session (Pickup หรือ Delivery)
+                O_PaymentType = shippingMethod, //  ใช้ค่าจาก Session (Pickup หรือ Delivery)
                 O_UserID = user.U_UserID,
                 O_Status = "รอตรวจสอบ",
                 O_GiftItemName = "" 

@@ -82,7 +82,7 @@
     .dialog-header { padding: 24px 24px 16px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; }
     .dialog-title { margin: 0; font-weight: 800; color: var(--sirin-blue); font-size: 1.25rem; display: flex; align-items: center; gap: 8px;}
     .btn-close-circle { background: #f1f5f9; border: none; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #64748b; cursor: pointer; transition: 0.2s; }
-    .btn-close-circle:hover { background: #e2e8f0; color: #0f172a; transform: rotate(90deg); }
+    @* .btn-close-circle:hover { background: #e2e8f0; color: #0f172a; transform: rotate(90deg); } *@
 
     .dialog-body { padding: 24px; }
     .info-card { background: #f8fafc; border: 1px solid var(--border-color); border-radius: 16px; padding: 18px; margin-bottom: 20px; }
@@ -173,7 +173,7 @@
                             <td class="text-center">
                                 <span style="background: #f1f5f9; color: #475569; padding: 6px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600;">
                                     <i class="bi @(firstItem.O_PaymentType == "Walk-in" ? "bi-shop" : (firstItem.O_PaymentType == "Pickup" ? "bi-bag-check" : "bi-truck")) me-1"></i>
-                                    @(firstItem.O_PaymentType == "Walk-in" ? "Walk-in (หน้าร้าน)" : (firstItem.O_PaymentType == "Pickup" ? "รับที่ร้าน" : "จัดส่ง"))
+                                    @(firstItem.O_PaymentType == "Walk-in" ? "Walk-in" : (firstItem.O_PaymentType == "Pickup" ? "รับที่ร้าน" : "จัดส่ง"))
                                 </span>
                             </td>
                             <td class="text-center fw-bold fs-5" style="color: var(--text-dark);">฿@totalAmount.ToString("N0")</td>

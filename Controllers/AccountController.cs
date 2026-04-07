@@ -2,9 +2,9 @@ using Microsoft.AspNetCore.Mvc;
 using SirinEngineering.Models.db;
 using SirinEngineering.ViewModels;
 using System.Linq;
-using System.Security.Claims; // เพิ่ม
-using Microsoft.AspNetCore.Authentication; // เพิ่ม
-using System.Threading.Tasks; // เพิ่ม
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 
 namespace SirinEngineering.Controllers
@@ -34,10 +34,8 @@ namespace SirinEngineering.Controllers
 
             if (user != null)
             {
-                // แปลง RoleID เป็นชื่อ Role
                 string roleName = user.U_RoleID == 1 ? "Admin" : (user.U_RoleID == 2 ? "Staff" : "Customer");
 
-                // --- สร้างบัตรประจำตัว (Cookie) ให้ระบบจำ User ---
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimTypes.Name, user.U_Username), // เก็บชื่อ Username
@@ -105,6 +103,7 @@ namespace SirinEngineering.Controllers
         // --- เพิ่มฟังก์ชัน Logout ---
         public async Task<IActionResult> Logout()
         {
+            HttpContext.Session.Clear();
             await HttpContext.SignOutAsync("MyCookieAuth");
             return RedirectToAction("Index", "Product");
         }

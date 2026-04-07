@@ -3,6 +3,7 @@
     var categories = ViewBag.Categories as List<SirinEngineering.Models.db.CategoryModel>;
     int currentPage = ViewBag.CurrentPage ?? 1;
     int totalPages = ViewBag.TotalPages ?? 1;
+    string currentSearch = ViewBag.Search ?? "";
 }
 
 @model IEnumerable<SirinEngineering.Models.db.PromotionModel>
@@ -20,9 +21,15 @@
     .btn-link-status { border: none; background: none; padding: 0; }
     .search-bar { border: none; background: #fdfeff; border-radius: 12px; padding: 10px 18px; font-size: 0.9rem; min-width: 400px; transition: 0.2s; }
     .search-bar:focus { outline: none; background: #fcfdff; }
-    .minimal-page { border: none; background: transparent; color: #6c757d; border-radius: 8px; margin: 0 2px; text-decoration: none; padding: 8px 14px; }
-    .page-item.active .minimal-page { background: #eef2f7; color: #003D7C; font-weight: 600; }
-    .minimal-page:hover { background: #f5f7fa; color: #003D7C; }
+
+    /* 🌟 Pagination Styles 🌟 */
+    .pagination-wrapper { padding: 20px 24px; display: flex; justify-content: center; align-items: center; background: transparent; border-top: 1px solid #e2e8f0; margin-top: 10px; }
+    .pagination { display: flex; gap: 4px; list-style: none; padding: 0; margin: 0; align-items: center; }
+    .page-item .page-link { border: none; padding: 6px 14px; border-radius: 8px; color: #64748b; background: transparent; font-weight: 500; font-size: 0.95rem; transition: all 0.2s ease; text-decoration: none; position: relative; }
+    .page-item .page-link:hover { color: #003D7C; background: #f1f5f9; }
+    .page-item.active .page-link { background: transparent; color: #003D7C; font-weight: 700; pointer-events: none; }
+    .page-item.active .page-link::after { content: ''; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); width: 16px; height: 2.5px; background-color: #003D7C; border-radius: 4px; }
+    .page-item.disabled .page-link { opacity: 0.3; pointer-events: none; }
 </style>
 
 <div class="container-fluid">
@@ -70,7 +77,7 @@
                     @foreach (var item in Model) {
                         <tr>
                              <td class="ps-4 text-start">
-                                <div class="fw-bold">@item.PM_PromotionName</div>
+                                 <div class="fw-bold">@item.PM_PromotionName</div>
                                 <div class="small text-muted">@item.PM_StartDate.ToString("dd/MM/yy") - @item.PM_EndDate.ToString("dd/MM/yy")</div>
                             </td>
                             <td><span class="badge-promo type-blue">@item.PM_PromoType</span></td>
@@ -81,7 +88,7 @@
                              <td>
                                 <form asp-action="TogglePromotionStatus" method="post">
                                     <input type="hidden" name="id" value="@item.PM_PromotionID" />
-                                     <div class="form-check form-switch d-flex justify-content-center">
+                                    <div class="form-check form-switch d-flex justify-content-center">
                                         <input class="form-check-input" type="checkbox" role="switch" @(item.PM_IsActive ? "checked" : "") onchange="this.form.submit()">
                                     </div>
                                     <div class="small @(item.PM_IsActive ? "text-success" : "text-muted")">
@@ -183,23 +190,29 @@
                     }
                 </tbody>
             </table>
+            
+            @if (totalPages > 1)
+            {
+                <div class="pagination-wrapper">
+                    <ul class="pagination">
+                        <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                            <a class="page-link" href="?page=@(currentPage - 1)&search=@currentSearch"><i class="bi bi-chevron-left"></i></a>
+                        </li>
+                        @for (int i = 1; i <= totalPages; i++)
+                        {
+                            <li class="page-item @(i == currentPage ? "active" : "")">
+                                <a class="page-link" href="?page=@i&search=@currentSearch">@i</a>
+                            </li>
+                        }
+                        <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                            <a class="page-link" href="?page=@(currentPage + 1)&search=@currentSearch"><i class="bi bi-chevron-right"></i></a>
+                        </li>
+                    </ul>
+                </div>
+            }
+            
         </div>
     </div>
-    @if (totalPages > 1)
-    {
-        <div class="d-flex justify-content-center mt-4">
-            <nav>
-                <ul class="pagination mb-0">
-                    @for (int i = 1; i <= totalPages; i++)
-                    {
-                        <li class="page-item @(i == currentPage ? "active" : "")">
-                            <a class="minimal-page shadow-sm" href="@Url.Action("ManagePromotion", new { page = i, search = ViewBag.Search })">@i</a>
-                        </li>
-                    }
-                </ul>
-            </nav>
-        </div>
-    }
 </div>
 
 <div class="modal fade" id="promoDiscount" tabindex="-1" aria-hidden="true">
@@ -208,7 +221,7 @@
             <form asp-action="CreatePromotion" method="post">
                 <input type="hidden" name="PM_PromoType" value="Discount" />
                 <div class="modal-body p-4">
-                     <h5 class="fw-bold mb-4">ลดราคาปกติ (Direct)</h5>
+                    <h5 class="fw-bold mb-4">ลดราคาปกติ (Direct)</h5>
                     <div class="mb-3">
                         <label class="small fw-bold text-muted">ชื่อโปรโมชั่น</label>
                         <input name="PM_PromotionName" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
@@ -217,7 +230,6 @@
                         <label class="small fw-bold text-muted">จำนวนเงินที่ลด (บาท)</label>
                         <input name="PM_DiscountValue" type="number" min="0" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
                     </div>
-                    
                     <div class="row mb-3">
                         <div class="col-6">
                             <label class="small fw-bold text-muted">วันที่เริ่ม</label>
@@ -231,7 +243,7 @@
                     <button type="submit" class="btn btn-sirin w-100 p-3 fw-bold shadow-sm">บันทึกโปรโมชั่น</button>
                 </div>
             </form>
-         </div>
+        </div>
     </div>
 </div>
 
@@ -249,14 +261,13 @@
                     <div class="row mb-3">
                         <div class="col-6">
                             <label class="small fw-bold text-muted">ซื้อครบ (ชิ้น)</label>
-                             <input name="PM_MinQuantity" type="number" min="1" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
+                            <input name="PM_MinQuantity" type="number" min="1" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
                         </div>
                         <div class="col-6">
                             <label class="small fw-bold text-muted">แถมฟรี (ชิ้น)</label>
                             <input name="PM_FreeQuantity" type="number" min="1" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
                         </div>
                     </div>
-                    
                     <div class="row mb-3">
                         <div class="col-6">
                             <label class="small fw-bold text-muted">วันที่เริ่ม</label>
@@ -270,7 +281,7 @@
                     <button type="submit" class="btn btn-sirin w-100 p-3 fw-bold shadow-sm">บันทึกโปรโมชั่น</button>
                 </div>
             </form>
-         </div>
+        </div>
     </div>
 </div>
 
@@ -288,14 +299,13 @@
                     <div class="row mb-3">
                         <div class="col-6">
                             <label class="small fw-bold text-muted">ยอดซื้อขั้นต่ำ (฿)</label>
-                             <input name="PM_MinSpend" type="number" min="1" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
+                            <input name="PM_MinSpend" type="number" min="1" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
                         </div>
                         <div class="col-6">
                             <label class="small fw-bold text-muted">ส่วนลดที่ได้ (฿)</label>
                             <input name="PM_DiscountValue" type="number" min="1" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
                         </div>
                     </div>
-
                     <div class="row mb-3">
                         <div class="col-6">
                             <label class="small fw-bold text-muted">วันที่เริ่ม</label>
@@ -309,7 +319,7 @@
                     <button type="submit" class="btn btn-sirin w-100 p-3 fw-bold shadow-sm">บันทึกโปรโมชั่น</button>
                 </div>
             </form>
-         </div>
+        </div>
     </div>
 </div>
 
@@ -327,14 +337,13 @@
                     <div class="row mb-3">
                         <div class="col-6">
                             <label class="small fw-bold text-muted">ซื้อครบ (ชิ้น)</label>
-                             <input name="PM_MinQuantity" type="number" min="1" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
+                            <input name="PM_MinQuantity" type="number" min="1" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
                         </div>
                         <div class="col-6">
                             <label class="small fw-bold text-muted">ส่วนลดที่ได้ (฿)</label>
                             <input name="PM_DiscountValue" type="number" min="1" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
                         </div>
                     </div>
-
                     <div class="row mb-3">
                         <div class="col-6">
                             <label class="small fw-bold text-muted">วันที่เริ่ม</label>
@@ -348,7 +357,7 @@
                     <button type="submit" class="btn btn-sirin w-100 p-3 fw-bold shadow-sm">บันทึกโปรโมชั่น</button>
                 </div>
             </form>
-         </div>
+        </div>
     </div>
 </div>
 
@@ -375,7 +384,6 @@
                         <label class="small fw-bold text-muted">จำนวนเงินที่ลด (฿)</label>
                         <input name="PM_DiscountValue" type="number" min="1" class="form-control border-0 bg-light p-3" required style="border-radius:12px;" />
                     </div>
-
                     <div class="row mb-3">
                         <div class="col-6">
                             <label class="small fw-bold text-muted">วันที่เริ่ม</label>
@@ -389,6 +397,6 @@
                     <button type="submit" class="btn btn-sirin w-100 p-3 fw-bold shadow-sm">บันทึกโปรโมชั่น</button>
                 </div>
             </form>
-         </div>
+        </div>
     </div>
 </div>

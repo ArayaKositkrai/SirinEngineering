@@ -1,5 +1,8 @@
 @{
     Layout = "~/Views/Shared/Layout/_AdminLayout.cshtml";
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    string currentSearch = ViewBag.Search ?? "";
 }
 
 @model IEnumerable<SirinEngineering.Models.db.CategoryModel>
@@ -51,24 +54,14 @@
         background: #fcfdff;
     }
 
-    .minimal-page {
-        border: none;
-        background: transparent;
-        color: #6c757d;
-        border-radius: 8px;
-        margin: 0 2px;
-    }
-
-    .page-item.active .minimal-page {
-        background: #eef2f7;
-        color: #003D7C;
-        font-weight: 600;
-    }
-
-    .minimal-page:hover {
-        background: #f5f7fa;
-        color: #003D7C;
-    }
+    /* 🌟 Pagination Styles 🌟 */
+    .pagination-wrapper { padding: 20px 24px; display: flex; justify-content: center; align-items: center; background: transparent; border-top: 1px solid #e2e8f0; margin-top: 10px; }
+    .pagination { display: flex; gap: 4px; list-style: none; padding: 0; margin: 0; align-items: center; }
+    .page-item .page-link { border: none; padding: 6px 14px; border-radius: 8px; color: #64748b; background: transparent; font-weight: 500; font-size: 0.95rem; transition: all 0.2s ease; text-decoration: none; position: relative; }
+    .page-item .page-link:hover { color: #003D7C; background: #f1f5f9; }
+    .page-item.active .page-link { background: transparent; color: #003D7C; font-weight: 700; pointer-events: none; }
+    .page-item.active .page-link::after { content: ''; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); width: 16px; height: 2.5px; background-color: #003D7C; border-radius: 4px; }
+    .page-item.disabled .page-link { opacity: 0.3; pointer-events: none; }
 </style>
 
 @if (TempData["Error"] != null)
@@ -86,13 +79,11 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 }
-<div class="container-fluid">
 
+<div class="container-fluid">
     <div class="d-flex align-items-center mb-4">
         <h3 class="fw-bold mb-0" style="color: #003D7C;">Product Categories</h3>
         <div class="ms-auto d-flex align-items-center gap-2">
-
-            <!-- Search -->
             <form method="get" class="d-flex align-items-center">
                 <div class="input-group">
                     <span class="input-group-text bg-light border-0">
@@ -102,35 +93,27 @@
                            placeholder="ค้นหาหมวดหมู่" onchange="this.form.submit()" />
                 </div>
             </form>
-
-            <!-- Add -->
             <button class="btn btn-sirin px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
                 + เพิ่มหมวดหมู่ใหม่
             </button>
-
         </div>
     </div>
 
     <div class="card card-minimal border-0 shadow-sm">
         <div class="card-body p-0 text-center">
             <div class="table-responsive">
-
                 <table class="table align-middle">
                     <thead class="bg-light">
                         <tr class="small text-muted">
-                            @* <th class="ps-4 text-start">ID</th> *@
                             <th class="text-start">Category Name</th>
                             <th>Products</th>
                             <th class="text-end pe-4">Actions</th>
                         </tr>
                     </thead>
-
                     <tbody>
                         @foreach (var item in Model)
                         {
                             <tr>
-                                @* <td class="ps-4 text-start">@item.C_CategoryID</td> *@
-
                                 <td class="text-start fw-bold px-3">
                                     @item.C_CategoryName
                                 </td>
@@ -139,115 +122,95 @@
                                         @item.C_ProductCount
                                     </span>
                                 </td>
-
                                 <td class="text-end pe-4">
                                     <div class="d-flex justify-content-end gap-2">
-
-                                        <!-- Edit -->
-                                        <button
-                                            class="btn btn-light btn-sm rounded-pill px-3 shadow-sm border text-secondary"
-                                            data-bs-toggle="modal" data-bs-target="#editCategoryModal-@item.C_CategoryID">
+                                        <button class="btn btn-light btn-sm rounded-pill px-3 shadow-sm border text-secondary"
+                                                data-bs-toggle="modal" data-bs-target="#editCategoryModal-@item.C_CategoryID">
                                             แก้ไข
                                         </button>
 
-                                        <!-- Delete -->
                                         <form asp-action="DeleteCategory" method="post" class="d-inline">
                                             <input type="hidden" name="id" value="@item.C_CategoryID" />
-
-                                            <button type="submit"
-                                                    class="btn text-danger"
+                                            <button type="submit" class="btn text-danger"
                                                     onclick="return confirm('คุณแน่ใจหรือไม่ว่าต้องการลบหมวดหมู่นี้?');">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>
-
                                     </div>
                                 </td>
                             </tr>
+                            
                             <div class="modal fade" id="editCategoryModal-@item.C_CategoryID" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius:20px;">
-
-            <form asp-action="EditCategory" method="post">
-                <div class="modal-body p-4">
-
-                    <h5 class="fw-bold mb-3" style="color:#003D7C;">แก้ไขหมวดหมู่</h5>
-
-                    <input type="hidden" name="C_CategoryID" value="@item.C_CategoryID" />
-
-                    <div class="mb-3">
-                        <label class="small text-muted d-block text-start">ชื่อหมวดหมู่</label>
-                        <input name="C_CategoryName"
-                               value="@item.C_CategoryName"
-                               class="form-control border-0 bg-light p-3"
-                               required
-                               style="border-radius:12px;" />
-                    </div>
-
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-sirin p-3 fw-bold">
-                            บันทึกการแก้ไข
-                        </button>
-                    </div>
-
-                </div>
-            </form>
-
-        </div>
-    </div>
-</div>
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content border-0 shadow-lg" style="border-radius:20px;">
+                                        <form asp-action="EditCategory" method="post">
+                                            <div class="modal-body p-4">
+                                                <h5 class="fw-bold mb-3" style="color:#003D7C;">แก้ไขหมวดหมู่</h5>
+                                                <input type="hidden" name="C_CategoryID" value="@item.C_CategoryID" />
+                                                <div class="mb-3">
+                                                    <label class="small text-muted d-block text-start">ชื่อหมวดหมู่</label>
+                                                    <input name="C_CategoryName" value="@item.C_CategoryName"
+                                                           class="form-control border-0 bg-light p-3" required
+                                                           style="border-radius:12px;" />
+                                                </div>
+                                                <div class="d-grid">
+                                                    <button type="submit" class="btn btn-sirin p-3 fw-bold">
+                                                        บันทึกการแก้ไข
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
                         }
                     </tbody>
-
                 </table>
-<div class="modal fade" id="addCategoryModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius:20px;">
-
-            <form asp-action="CreateCategory" method="post">
-                <div class="modal-body p-4">
-
-                    <h5 class="fw-bold mb-3" style="color:#003D7C;">เพิ่มหมวดหมู่ใหม่</h5>
-
-                    <div class="mb-3">
-                        <label class="small text-muted d-block text-start">ชื่อหมวดหมู่</label>
-                        <input name="C_CategoryName"
-                               class="form-control border-0 bg-light p-3"
-                               required
-                               style="border-radius:12px;" />
+                
+                <div class="modal fade" id="addCategoryModal" tabindex="-1">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 shadow-lg" style="border-radius:20px;">
+                            <form asp-action="CreateCategory" method="post">
+                                <div class="modal-body p-4">
+                                    <h5 class="fw-bold mb-3" style="color:#003D7C;">เพิ่มหมวดหมู่ใหม่</h5>
+                                    <div class="mb-3">
+                                        <label class="small text-muted d-block text-start">ชื่อหมวดหมู่</label>
+                                        <input name="C_CategoryName" class="form-control border-0 bg-light p-3" required
+                                               style="border-radius:12px;" />
+                                    </div>
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-sirin p-3 fw-bold">
+                                            บันทึกหมวดหมู่
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-sirin p-3 fw-bold">
-                            บันทึกหมวดหมู่
-                        </button>
-                    </div>
-
                 </div>
-            </form>
 
-        </div>
-    </div>
-</div>
             </div>
+            
+            @if (totalPages > 1)
+            {
+                <div class="pagination-wrapper">
+                    <ul class="pagination">
+                        <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                            <a class="page-link" href="?page=@(currentPage - 1)&search=@currentSearch"><i class="bi bi-chevron-left"></i></a>
+                        </li>
+                        @for (int i = 1; i <= totalPages; i++)
+                        {
+                            <li class="page-item @(i == currentPage ? "active" : "")">
+                                <a class="page-link" href="?page=@i&search=@currentSearch">@i</a>
+                            </li>
+                        }
+                        <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                            <a class="page-link" href="?page=@(currentPage + 1)&search=@currentSearch"><i class="bi bi-chevron-right"></i></a>
+                        </li>
+                    </ul>
+                </div>
+            }
 
         </div>
-
-    </div>
-    <div class="d-flex justify-content-center mt-4">
-        <nav>
-            <ul class="pagination pagination-sm mb-0">
-
-                @for (int i = 1; i <= ViewBag.TotalPages; i++)
-                {
-                    <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
-                        <a class="page-link minimal-page" href="?page=@i&search=@ViewBag.Search">
-                            @i
-                        </a>
-                    </li>
-                }
-
-            </ul>
-        </nav>
     </div>
 </div>
