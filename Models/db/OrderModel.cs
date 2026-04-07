@@ -15,7 +15,7 @@ namespace SirinEngineering.Models.db
         public decimal O_SubTotal { get; set; }
         public decimal O_DiscountAmount { get; set; }
         public decimal O_TotalAmount { get; set; }
-        public string O_GiftItemName { get; set; }
+        public string? O_GiftItemName { get; set; }
         public string O_PaymentType { get; set; }
         public int O_UserID { get; set; }
         public string O_Status { get; set; }

@@ -1,5 +1,356 @@
+@model List<SirinEngineering.Models.db.ProductModel>
 @{
-    Layout = "~/Views/Shared/Layout/_UserLayout.cshtml";
+    Layout = "~/Views/Shared/Layout/_UserLayout.cshtml"; 
+    ViewData["Title"] = "POS - Point of Sale";
+    var categories = ViewBag.Categories as List<string> ?? new List<string>();
+    var promos = ViewBag.Promotions as List<SirinEngineering.Models.db.PromotionModel>;
 }
 
-อันนี้คือหน้ารายการสั่งซื้อของคุณค่ะ กรุณาตรวจสอบรายละเอียดการสั่งซื้อและทำการชำระเงินเพื่อดำเนินการต่อไปค่ะ
+<style>
+    :root { --sirin-blue: #003D7C; --bg-light: #f8fafc; --border-color: #e2e8f0; }
+    
+    .filter-select { border-radius: 12px; padding: 10px 35px 10px 15px; border: 1px solid var(--border-color); background-color: white; font-size: 0.9rem; color: #475569; min-width: 150px; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 15px center; outline: none; height: 45px; }
+    .search-container { display: flex; align-items: center; background: white; border: 1px solid var(--border-color); border-radius: 12px; height: 45px; padding-left: 15px; overflow: hidden; width: 100%; }
+    .search-bar { border: none; background: transparent; padding: 10px 15px 10px 10px; font-size: 0.95rem; width: 100%; outline: none; }
+
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; max-height: calc(100vh - 200px); overflow-y: auto; padding-right: 10px; }
+    .pos-card { border: 1px solid #e2e8f0; border-radius: 16px; padding: 15px; cursor: pointer; transition: 0.2s; background: white; text-align: center; }
+    .pos-card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px rgba(0,0,0,0.05); border-color: var(--sirin-blue); }
+    .pos-img { width: 100%; height: 100px; object-fit: contain; margin-bottom: 10px; }
+    .pos-price { color: var(--sirin-blue); font-weight: 800; font-size: 1.1rem; }
+    
+    .cart-panel { background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); display: flex; flex-direction: column; height: calc(100vh - 120px); }
+    .cart-header { padding: 20px; border-bottom: 1px solid #f1f5f9; background: var(--sirin-blue); color: white; border-radius: 20px 20px 0 0; }
+    .cart-body { padding: 20px; flex-grow: 1; overflow-y: auto; }
+    .cart-footer { padding: 20px; background: #f8fafc; border-radius: 0 0 20px 20px; }
+    
+    .cart-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 15px; margin-bottom: 15px; }
+    .qty-btn { width: 30px; height: 30px; border-radius: 8px; border: 1px solid #cbd5e1; background: white; font-weight: bold; color: var(--sirin-blue); }
+    .btn-checkout { background: var(--sirin-blue); color: white; font-size: 1.2rem; font-weight: bold; border-radius: 12px; padding: 15px; width: 100%; border: none; transition: 0.2s; }
+    .btn-checkout:hover:not(:disabled) { background: #002d5c; transform: translateY(-2px); box-shadow: 0 10px 15px rgba(0,61,124,0.2); }
+    .btn-checkout:disabled { background: #cbd5e1; cursor: not-allowed; }
+
+    .qr-dialog { border: none; border-radius: 20px; padding: 40px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+    .qr-dialog::backdrop { background-color: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); }
+    .qr-image { width: 220px; height: 220px; margin: 20px auto; border: 10px solid white; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+</style>
+
+<div class="row g-4 mt-1">
+    <div class="col-lg-8">
+        <h4 class="fw-bold mb-0" style="border-left: 6px solid var(--sirin-blue); padding-left: 15px; color: var(--sirin-blue);">
+        POS ระบบซื้อขายหน้าร้าน
+        </h4>
+        <br>
+        <div class="d-flex align-items-center gap-2 mb-4">
+            <select id="catFilter" class="filter-select shadow-sm" onchange="filterProducts()">
+                <option value="all">หมวดหมู่ทั้งหมด</option>
+                @foreach(var cat in categories)
+                {
+                    <option value="@cat">@cat</option>
+                }
+            </select>
+
+            <div class="search-container shadow-sm">
+                <i class="bi bi-search text-muted"></i>
+                <input type="text" id="searchInput" class="search-bar" placeholder="ค้นหาชื่อสินค้า, แบรนด์..." onkeyup="filterProducts()">
+            </div>
+        </div>
+
+        <div class="product-grid" id="productGrid">
+            @foreach (var item in Model)
+            {
+                <div class="pos-card product-item" 
+                     data-name="@item.PD_ProductName.ToLower() @item.PD_Brand?.ToLower()" 
+                     data-category="@(item.Category?.C_CategoryName ?? "")"
+                     onclick="addToCart(@item.PD_ProductID, '@item.PD_ProductName.Replace("'", "\\'")', @item.PD_Price, @item.PD_StockQty, @(item.Category?.C_CategoryID ?? 0))">
+                    
+                    <img src="~/images/products/@(string.IsNullOrEmpty(item.PD_ProductImage) ? "no-image.png" : item.PD_ProductImage)" class="pos-img" onerror="this.src='/images/products/no-image.png'" />
+                    
+                    <div class="small text-muted text-truncate">@(item.Category?.C_CategoryName ?? "-")</div>
+                    <div class="fw-bold text-dark text-truncate" style="font-size: 0.9rem;">@item.PD_ProductName</div>
+                    <div class="pos-price mt-1">฿@item.PD_Price.ToString("N0")</div>
+                    <div class="small mt-1 text-success">มี @item.PD_StockQty ชิ้น</div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="cart-panel">
+            <div class="cart-header"><h5 class="mb-0 fw-bold"><i class="bi bi-cart-check me-2"></i> บิลปัจจุบัน</h5></div>
+            
+            <div class="cart-body" id="cartItemsContainer">
+                <div class="text-center text-muted" style="margin-top: 50%;">
+                    <i class="bi bi-basket" style="font-size: 3rem;"></i><br>รอสแกนสินค้า...
+                </div>
+            </div>
+            
+            <div class="cart-footer">
+                <input type="text" id="customerName" class="form-control mb-2 shadow-sm" placeholder="ชื่อลูกค้า (ไม่บังคับ)" style="border-radius: 10px;">
+                
+                <div class="mb-3 mt-3">
+                    <label class="small text-muted fw-bold mb-1"><i class="bi bi-tags"></i> โปรโมชั่น / ส่วนลด</label>
+                    <select id="promoSelect" class="form-select shadow-sm" style="border-radius: 10px; cursor: pointer;" onchange="renderCart()">
+                        <option value="" data-type="None">-- ไม่ใช้ส่วนลด --</option>
+                        @if (promos != null)
+                        {
+                            foreach (var promo in promos)
+                            {
+                                <option value="@promo.PM_PromotionID" 
+                                        data-type="@promo.PM_PromoType" 
+                                        data-min-spend="@(promo.PM_MinSpend ?? 0)"
+                                        data-min-qty="@(promo.PM_MinQuantity ?? 0)"
+                                        data-val="@(promo.PM_DiscountValue ?? 0)"
+                                        data-cat="@(promo.PM_TargetCategoryID ?? 0)"
+                                        data-free-qty="@(promo.PM_FreeQuantity ?? 0)">
+                                    @promo.PM_PromotionName
+                                </option>
+                            }
+                        }
+                    </select>
+                    <div id="promoWarning" style="display: none; color: #dc3545; font-size: 0.85rem; font-weight: 600; margin-top: 5px;"></div>
+                </div>
+
+                <input type="hidden" id="discountAmount" value="0">
+                <input type="hidden" id="giftName" value="-">
+                
+                <div class="d-flex justify-content-between text-muted small mb-1">
+                    <span>ยอดรวมสินค้า</span>
+                    <span id="cartSubTotal">฿0</span>
+                </div>
+                <div id="discountRow" class="d-flex justify-content-between text-danger small mb-2 pb-2" style="border-bottom: 1px dashed #cbd5e1; display: none !important;">
+                    <span>ส่วนลด</span>
+                    <span id="cartDiscount">- ฿0</span>
+                </div>
+
+                <div class="d-flex justify-content-between mb-3 fs-5 fw-bold text-dark mt-2">
+                    <span>ยอดชำระสุทธิ</span>
+                    <span id="cartTotal" style="color: var(--sirin-blue);">฿0</span>
+                </div>
+                
+                <button id="btnCheckout" class="btn-checkout" onclick="openQrModal()" disabled>
+                    <i class="bi bi-qr-code-scan me-2"></i> สร้าง QR รับเงิน
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<dialog id="qrModal" class="qr-dialog">
+    <h4 class="fw-bold" style="color: var(--sirin-blue);">สแกนเพื่อชำระเงิน</h4>
+    <div class="text-muted mb-2">Sirin Engineering Co., Ltd.</div>
+    <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=PROMPTPAY-PAYMENT" class="qr-image" alt="QR Code" />
+    
+    <div class="p-3 mb-4 rounded-3" style="background: #f1f5f9;">
+        <div class="small text-muted mb-1">ยอดที่ต้องชำระ</div>
+        <div class="fw-bold" style="font-size: 2rem; color: #059669;" id="qrTotalAmount">฿0</div>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button type="button" class="btn btn-light w-50 py-3 fw-bold rounded-3" onclick="closeQrModal()">ยกเลิก</button>
+        <button type="button" class="btn btn-success w-50 py-3 fw-bold rounded-3 shadow" onclick="processCheckout()" id="btnConfirmPay">
+            <i class="bi bi-check-circle-fill me-1"></i> รับเงินแล้ว
+        </button>
+    </div>
+</dialog>
+
+<script>
+    let cart = []; 
+
+    function filterProducts() {
+        let search = document.getElementById('searchInput').value.toLowerCase();
+        let cat = document.getElementById('catFilter').value;
+        let items = document.querySelectorAll('.product-item');
+        items.forEach(item => {
+            let name = item.getAttribute('data-name');
+            let itemCat = item.getAttribute('data-category');
+            item.style.display = (name.includes(search) && (cat === 'all' || itemCat === cat)) ? "block" : "none";
+        });
+    }
+
+    // ฟังก์ชันล้างโปรโมชั่น
+    function clearPromo() {
+        let promoSelect = document.getElementById('promoSelect');
+        if(promoSelect) promoSelect.value = "";
+    }
+
+    // เพิ่มสินค้า
+    function addToCart(id, name, price, maxStock, catId) {
+        clearPromo(); 
+        let item = cart.find(i => i.id === id);
+        if (item) {
+            if (item.qty < maxStock) item.qty++;
+            else alert("ของในสต๊อกไม่พอแล้วครับ!");
+        } else cart.push({ id, name, price, qty: 1, maxStock, cat: catId, total: price });
+        renderCart();
+    }
+
+    // เปลี่ยนจำนวน
+    function changeQty(id, delta) {
+        clearPromo(); 
+        let item = cart.find(i => i.id === id);
+        if (item) {
+            item.qty += delta;
+            if (item.qty <= 0) cart = cart.filter(i => i.id !== id);
+            else if (item.qty > item.maxStock) { item.qty = item.maxStock; alert("เกินสต๊อกที่มี!"); }
+            if(item) item.total = item.price * item.qty; 
+        }
+        renderCart();
+    }
+
+    // 🌟 ฟังก์ชันลบสินค้าแบบถังขยะ 🌟
+    function removeItem(id) {
+        clearPromo();
+        cart = cart.filter(i => i.id !== id);
+        renderCart();
+    }
+
+    function renderCart() {
+        let container = document.getElementById('cartItemsContainer');
+        let promoSelect = document.getElementById('promoSelect');
+        let promoWarning = document.getElementById('promoWarning');
+        let discountRow = document.getElementById('discountRow');
+        
+        let subTotal = 0;
+        cart.forEach(item => subTotal += (item.price * item.qty));
+
+        let finalDiscount = 0;
+        let isPromoValid = true;
+        let warningMsg = "";
+        let promoName = "-";
+
+        if (promoSelect && cart.length > 0) {
+            const selectedPromo = promoSelect.options[promoSelect.selectedIndex];
+            const promoType = selectedPromo.getAttribute('data-type');
+            promoName = selectedPromo.text;
+
+            if (promoType === 'None' || promoType === null) {
+                finalDiscount = 0;
+                isPromoValid = true; 
+            } else {
+                const minSpend = parseFloat(selectedPromo.getAttribute('data-min-spend')) || 0;
+                const rawMinQty = parseInt(selectedPromo.getAttribute('data-min-qty')) || 0;
+                const rawFreeQty = parseInt(selectedPromo.getAttribute('data-free-qty')) || 0;
+                const minQty = rawMinQty > 0 ? rawMinQty : 1; 
+                const freeQty = rawFreeQty > 0 ? rawFreeQty : 1; 
+                const discountValue = parseFloat(selectedPromo.getAttribute('data-val')) || 0;
+                const targetCat = parseInt(selectedPromo.getAttribute('data-cat')) || 0;
+
+                if (promoType === 'BuyGetFree' || promoType === 'FreeItem') {
+                    let requiredQty = minQty + freeQty;
+                    let eligibleItems = cart.filter(item => item.qty >= requiredQty);
+                    if (eligibleItems.length > 0) {
+                        eligibleItems.sort((a, b) => a.price - b.price);
+                        let targetItem = eligibleItems[0];
+                        let freeSets = Math.floor(targetItem.qty / requiredQty); 
+                        finalDiscount = freeSets * freeQty * targetItem.price;
+                    } else {
+                        isPromoValid = false;
+                        warningMsg = `*ต้องซื้อสินค้าชนิดเดียวกันอย่างน้อย ${requiredQty} ชิ้น`;
+                    }
+                } else if (promoType === 'MinQty') {
+                    let hasEligibleItem = cart.some(item => item.qty >= minQty);
+                    if (hasEligibleItem) finalDiscount = discountValue;
+                    else { isPromoValid = false; warningMsg = `*ต้องมีสินค้าอย่างน้อย 1 รายการที่ซื้อครบ ${minQty} ชิ้น`; }
+                } else if (promoType === 'CategorySale' || promoType === 'Category') {
+                    // 🌟 เช็ค Category ID ตรงนี้จะทำงานได้ถูกต้องแล้ว 🌟
+                    let catSubtotal = cart.filter(item => item.cat === targetCat).reduce((sum, item) => sum + (item.price * item.qty), 0);
+                    if (catSubtotal > 0 && catSubtotal >= (discountValue + 100)) finalDiscount = discountValue;
+                    else { isPromoValid = false; warningMsg = "*ยอดซื้อในหมวดหมู่ที่ร่วมรายการไม่ถึงเกณฑ์"; }
+                } else if (promoType === 'MinSpend') {
+                    if (subTotal >= minSpend) finalDiscount = discountValue;
+                    else { isPromoValid = false; warningMsg = `*ยอดซื้อขั้นต่ำต้องถึง ${minSpend} บาท`; }
+                } else if (promoType === 'Discount') {
+                    if (subTotal >= discountValue) finalDiscount = discountValue;
+                    else { isPromoValid = false; warningMsg = "*ยอดซื้อต้องมากกว่าส่วนลด"; }
+                }
+            }
+        }
+
+        if (finalDiscount > subTotal) finalDiscount = subTotal;
+
+        if (!isPromoValid && cart.length > 0 && promoSelect.value !== "") {
+            promoWarning.style.display = 'block';
+            promoWarning.innerText = warningMsg;
+            finalDiscount = 0; 
+        } else {
+            promoWarning.style.display = 'none';
+        }
+
+        if (finalDiscount > 0) {
+            discountRow.style.setProperty("display", "flex", "important");
+            document.getElementById('cartDiscount').innerText = '-฿' + finalDiscount.toLocaleString();
+        } else {
+            discountRow.style.setProperty("display", "none", "important");
+            finalDiscount = 0;
+        }
+
+        let grandTotal = subTotal - finalDiscount;
+
+        document.getElementById('discountAmount').value = finalDiscount;
+        document.getElementById('giftName').value = (isPromoValid && finalDiscount > 0) ? promoName : "-";
+
+        document.getElementById('cartSubTotal').innerText = "฿" + subTotal.toLocaleString();
+        document.getElementById('cartTotal').innerText = "฿" + grandTotal.toLocaleString();
+        document.getElementById('qrTotalAmount').innerText = "฿" + grandTotal.toLocaleString();
+        document.getElementById('btnCheckout').disabled = cart.length === 0;
+
+        if (cart.length === 0) {
+            container.innerHTML = '<div class="text-center text-muted" style="margin-top: 50%;"><i class="bi bi-basket" style="font-size: 3rem;"></i><br>รอสแกนสินค้า...</div>';
+            return;
+        }
+
+        container.innerHTML = cart.map(item => `
+            <div class="cart-item">
+                <div style="flex-grow: 1;">
+                    <div class="fw-bold" style="font-size: 0.9rem;">${item.name}</div>
+                    <div class="text-muted small">฿${item.price.toLocaleString()} x ${item.qty}</div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button class="qty-btn" onclick="changeQty(${item.id}, -1)">-</button>
+                    <span class="fw-bold mx-1">${item.qty}</span>
+                    <button class="qty-btn" onclick="changeQty(${item.id}, 1)">+</button>
+                </div>
+                <div class="fw-bold text-end ms-3" style="width: 70px; color: var(--sirin-blue);">
+                    ฿${(item.price * item.qty).toLocaleString()}
+                </div>
+                <div class="ms-2">
+                    <i class="bi bi-trash-fill text-danger" style="cursor: pointer; font-size: 1.1rem;" onclick="removeItem(${item.id})" title="ลบสินค้า"></i>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function openQrModal() { document.getElementById('qrModal').showModal(); }
+    function closeQrModal() { document.getElementById('qrModal').close(); }
+
+    function processCheckout() {
+        let btn = document.getElementById('btnConfirmPay');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> กำลังบันทึก...';
+
+        let requestData = {
+            CustomerName: document.getElementById('customerName').value,
+            DiscountAmount: parseFloat(document.getElementById('discountAmount').value) || 0,
+            GiftItemName: document.getElementById('giftName').value,
+            Items: cart.map(i => ({ ProductId: i.id, Qty: i.qty }))
+        };
+
+        fetch('/Sales/POSCheckout', { 
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestData)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.success) {
+                alert(`✅ การชำระเงินเสร็จสมบูรณ์! (เลขที่บิล: #ORD-${data.orderId})`);
+                window.location.reload(); 
+            } else {
+                alert('❌ ขัดข้อง: ' + data.message);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> รับเงินแล้ว';
+            }
+        });
+    }
+</script>

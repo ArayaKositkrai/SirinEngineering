@@ -4,7 +4,6 @@
     ViewData["Title"] = "Order Management";
 
     var users = ViewBag.Users as List<SirinEngineering.Models.db.UserModel>;
-
     var groupedOrders = Model?
         .GroupBy(o => o.O_OrderDate)
         .OrderByDescending(g => g.First().O_OrderDate)
@@ -13,7 +12,6 @@
     string searchId = Context.Request.Query["searchId"].ToString();
     string statusFilter = Context.Request.Query["statusFilter"].ToString();
 
-    // ลอจิกการฟิลเตอร์ข้อมูล
     if (!string.IsNullOrEmpty(searchId))
     {
         var cleanSearch = searchId.Replace("#ORD-", "").Replace("ORD-", "").Replace("#", "").Trim();
@@ -45,14 +43,7 @@
 }
 
 <style>
-    :root { 
-        --sirin-blue: #003D7C; 
-        --sirin-blue-hover: #002d5c;
-        --bg-light: #f8fafc;
-        --text-dark: #0f172a;
-        --text-muted: #64748b;
-        --border-color: #e2e8f0;
-    }
+    :root { --sirin-blue: #003D7C; --sirin-blue-hover: #002d5c; --bg-light: #f8fafc; --text-dark: #0f172a; --text-muted: #64748b; --border-color: #e2e8f0; }
 
     .card-premium { border: none; border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04); background: white; overflow: hidden; }
     .table { width: 100%; border-collapse: collapse; margin-bottom: 0; }
@@ -69,40 +60,18 @@
     .pill-shipped { background-color: #F0F9FF; color: #0369A1; }   
     .pill-success { background-color: #ECFDF5; color: #047857; }
 
-    /* 🌟 แก้ไข: Search & Filter ให้เรียงแถวเดียวกันความสูงเท่ากันเป๊ะ 🌟 */
-    .filter-select { 
-        border-radius: 12px; padding: 10px 35px 10px 15px; border: 1px solid var(--border-color); 
-        background-color: white; 
-        font-weight: normal; /* <--- เปลี่ยนเป็น normal (ไม่หนา) */
-        font-size: 0.9rem;   /* <--- เพิ่มบรรทัดนี้เพื่อลดขนาดฟอนต์ */
-        color: #475569; min-width: 180px; 
-        cursor: pointer; appearance: none; 
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2364748b' class='bi bi-chevron-down' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E"); 
-        background-repeat: no-repeat; background-position: right 15px center; background-size: 14px; 
-        outline: none; height: 45px;
-    }
+    .filter-select { border-radius: 12px; padding: 10px 35px 10px 15px; border: 1px solid var(--border-color); background-color: white; font-weight: normal; font-size: 0.9rem; color: #475569; min-width: 180px; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2364748b' class='bi bi-chevron-down' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 15px center; background-size: 14px; outline: none; height: 45px; }
     .filter-select:focus { border-color: var(--sirin-blue); }
 
-    .search-container {
-        display: flex; align-items: center; background: white; border: 1px solid var(--border-color); 
-        border-radius: 12px; height: 45px; padding-left: 15px; overflow: hidden;
-    }
-    .search-bar { 
-        border: none; background: transparent; padding: 10px 15px 10px 10px; 
-        font-size: 0.95rem; min-width: 250px; font-weight: 500; outline: none; height: 100%;
-    }
+    .search-container { display: flex; align-items: center; background: white; border: 1px solid var(--border-color); border-radius: 12px; height: 45px; padding-left: 15px; overflow: hidden; }
+    .search-bar { border: none; background: transparent; padding: 10px 15px 10px 10px; font-size: 0.95rem; min-width: 250px; font-weight: 500; outline: none; height: 100%; }
 
-    /* Pagination */
     .pagination-wrapper { padding: 20px 24px; display: flex; justify-content: center; align-items: center; background: transparent; border-top: 1px solid var(--border-color); }
-    .pagination-info { font-size: 0.9rem; color: #94a3b8; font-weight: 400; }
     .pagination { display: flex; gap: 4px; list-style: none; padding: 0; margin: 0; align-items: center; }
     .page-item .page-link { border: none; padding: 6px 14px; border-radius: 8px; color: #64748b; background: transparent; font-weight: 500; font-size: 0.95rem; transition: all 0.2s ease; text-decoration: none; position: relative; }
     .page-item .page-link:hover { color: var(--sirin-blue); background: #f1f5f9; }
-    
-    /* สไตล์หน้าปัจจุบัน (Active) แบบมินิมอล มีแค่ขีดเส้นใต้บางๆ */
     .page-item.active .page-link { background: transparent; color: var(--sirin-blue); font-weight: 700; pointer-events: none; }
     .page-item.active .page-link::after { content: ''; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); width: 16px; height: 2.5px; background-color: var(--sirin-blue); border-radius: 4px; }
-    
     .page-item.disabled .page-link { opacity: 0.3; pointer-events: none; }
 
     .custom-dialog { border: none; border-radius: 24px; padding: 0; width: 90%; max-width: 500px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); background: white; color: var(--text-dark); }
@@ -142,6 +111,7 @@
             <option value="กำลังเตรียมของ" selected="@(statusFilter == "กำลังเตรียมของ")">กำลังเตรียมของ</option>
             <option value="จัดส่งแล้ว" selected="@(statusFilter == "จัดส่งแล้ว")">จัดส่งแล้ว</option>
             <option value="รับสินค้าแล้ว" selected="@(statusFilter == "รับสินค้าแล้ว")">รับสินค้าแล้ว</option>
+            <option value="ชำระแล้ว" selected="@(statusFilter == "ชำระแล้ว")">ชำระแล้ว (หน้าร้าน)</option>
         </select>
 
         <div class="search-container shadow-sm m-0">
@@ -178,12 +148,12 @@
                 }
                 else
                 {
-                    @foreach (var group in pagedOrders)
+                     @foreach (var group in pagedOrders)
                     {
                         var firstItem = group.First();
                         var totalAmount = group.Sum(x => x.O_TotalAmount);
 
-                        <tr>
+                         <tr>
                             <td class="text-start fw-bold" style="color: var(--sirin-blue);">#ORD-@firstItem.O_OrderID</td>
                             <td class="text-start">
                                 <div style="font-weight: 600; color: var(--text-dark);">@firstItem.O_OrderDate.ToString("dd/MM/yyyy")</div>
@@ -194,33 +164,35 @@
                             <td class="text-start">
                                 @foreach (var item in group)
                                 {
-                                    <div class="fw-bold" style="color: var(--text-dark); max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem;">
+                                     <div class="fw-bold" style="color: var(--text-dark); max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem;">
                                         • @item.O_ProductName <span style="color: var(--sirin-blue);">(x@(item.O_Quantity))</span>
                                     </div>
-                                }
+                                 }
                             </td>
 
                             <td class="text-center">
                                 <span style="background: #f1f5f9; color: #475569; padding: 6px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600;">
-                                    <i class="bi @(firstItem.O_PaymentType == "Pickup" ? "bi-shop" : "bi-truck") me-1"></i>
-                                    @(firstItem.O_PaymentType == "Pickup" ? "รับที่ร้าน" : "จัดส่ง")
+                                    <i class="bi @(firstItem.O_PaymentType == "Walk-in" ? "bi-shop" : (firstItem.O_PaymentType == "Pickup" ? "bi-bag-check" : "bi-truck")) me-1"></i>
+                                    @(firstItem.O_PaymentType == "Walk-in" ? "Walk-in (หน้าร้าน)" : (firstItem.O_PaymentType == "Pickup" ? "รับที่ร้าน" : "จัดส่ง"))
                                 </span>
                             </td>
                             <td class="text-center fw-bold fs-5" style="color: var(--text-dark);">฿@totalAmount.ToString("N0")</td>
                             <td class="text-center">
                                 @{
                                     var label = firstItem.O_Status ?? "รอตรวจสอบ";
-                                    var badgeClass = "pill-checking";
+                                     var badgeClass = "pill-checking";
                                     if (label == "กำลังเตรียมของ" || label == "Preparing") { label = "กำลังเตรียมของ"; badgeClass = "pill-preparing"; } 
                                     else if (label == "จัดส่งแล้ว" || label == "Shipped") { label = "จัดส่งแล้ว"; badgeClass = "pill-shipped"; } 
                                     else if (label == "รับสินค้าแล้ว" || label == "Received") { label = "รับสินค้าแล้ว"; badgeClass = "pill-success"; } 
+                                    else if (label == "ชำระแล้ว") { label = "ชำระแล้ว"; badgeClass = "pill-success"; } 
                                     else { label = "รอตรวจสอบ"; badgeClass = "pill-checking"; }
                                 }
                                 <span class="pill-badge @badgeClass">@label</span>
                             </td>
-                            <td class="text-end">
+                             <td class="text-end">
                                 <button type="button" class="btn-action" onclick="document.getElementById('modal-@firstItem.O_OrderID').showModal()">
-                                    <i class="bi bi-sliders"></i> จัดการ
+                                    <i class="bi @(firstItem.O_PaymentType == "Walk-in" ? "bi-eye" : "bi-sliders")"></i> 
+                                    @(firstItem.O_PaymentType == "Walk-in" ? "ดูข้อมูล" : "จัดการ")
                                 </button>
                             </td>
                         </tr>
@@ -233,22 +205,17 @@
     @if (totalPages > 1)
     {
         <div class="pagination-wrapper">
-            @* <div class="pagination-info">
-                แสดงหน้า <span class="fw-bold" style="color: var(--sirin-blue);">@currentPage</span> จาก <span class="fw-bold">@totalPages</span>
-            </div> *@
             <ul class="pagination">
-                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                 <li class="page-item @(currentPage == 1 ? "disabled" : "")">
                     <a class="page-link" href="?page=@(currentPage - 1)&searchId=@searchId&statusFilter=@statusFilter"><i class="bi bi-chevron-left me-1"></i></a>
                 </li>
-                
                 @for (int i = 1; i <= totalPages; i++)
-                {
+                 {
                     <li class="page-item @(i == currentPage ? "active" : "")">
                         <a class="page-link" href="?page=@i&searchId=@searchId&statusFilter=@statusFilter">@i</a>
                     </li>
                 }
-
-                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                 <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
                     <a class="page-link" href="?page=@(currentPage + 1)&searchId=@searchId&statusFilter=@statusFilter"><i class="bi bi-chevron-right ms-1"></i></a>
                 </li>
             </ul>
@@ -260,11 +227,11 @@
 {
     @foreach (var group in pagedOrders)
     {
-        var firstItem = group.First();
+         var firstItem = group.First();
         var customerUser = users?.FirstOrDefault(u => u.U_UserID == firstItem.O_UserID);
         var label = firstItem.O_Status ?? "รอตรวจสอบ";
         var totalAmount = group.Sum(x => x.O_TotalAmount);
-
+        
         <dialog id="modal-@firstItem.O_OrderID" class="custom-dialog">
             <form asp-action="UpdateOrderStatus" method="post" style="margin: 0;">
                 @foreach(var item in group) { <input type="hidden" name="orderIds" value="@item.O_OrderID" /> }
@@ -288,11 +255,11 @@
                                 </div>
                                 <div style="color: var(--sirin-blue); font-weight: 700;">x@(item.O_Quantity)</div>
                             </div>
-                            @if (!string.IsNullOrEmpty(item.O_GiftItemName)) {
+                            @if (!string.IsNullOrEmpty(item.O_GiftItemName) && item.O_GiftItemName != "-") {
                                 <div style="font-size: 0.85rem; color: #059669; font-weight: 600; padding-left: 12px; margin-bottom: 8px;">
-                                    <i class="bi bi-gift-fill me-1"></i>แถม: @item.O_GiftItemName
+                                    <i class="bi bi-gift-fill me-1"></i>โปรโมชั่น: @item.O_GiftItemName
                                 </div>
-                            }
+                             }
                         }
                         <hr style="border: 0; border-top: 1px dashed #cbd5e1; margin: 12px 0;">
                         <div class="d-flex justify-content-between align-items-center">
@@ -301,9 +268,21 @@
                         </div>
                     </div>
 
-                    @if(firstItem.O_PaymentType != "Pickup") 
+                    @if(firstItem.O_PaymentType == "Walk-in") 
                     {
-                        <div class="address-card">
+                        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 16px; border-radius: 12px; text-align: center; font-weight: 600; margin-bottom: 24px;">
+                            <i class="bi bi-check-circle-fill me-1"></i> ลูกค้า Walk-in ชำระเงินและรับสินค้าแล้ว
+                        </div>
+                    }
+                    else if(firstItem.O_PaymentType == "Pickup")
+                    {
+                        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 16px; border-radius: 12px; text-align: center; font-weight: 600; margin-bottom: 24px;">
+                            <i class="bi bi-shop me-1"></i> ลูกค้ารับสินค้าที่หน้าร้าน
+                        </div>
+                    }
+                    else
+                    {
+                         <div class="address-card">
                             <div style="font-size: 0.85rem; font-weight: 700; color: #0284c7; margin-bottom: 8px;"><i class="bi bi-geo-alt-fill me-1"></i> ข้อมูลการจัดส่ง</div>
                             <div style="font-weight: 700; color: var(--text-dark); margin-bottom: 4px;">คุณ @firstItem.O_CustomerName</div>
                             <div style="color: #334155; font-size: 0.95rem; line-height: 1.5;">@(customerUser?.U_Address ?? "ไม่มีข้อมูลที่อยู่ในระบบ")</div>
@@ -312,31 +291,32 @@
                             </div>
                         </div>
                     }
-                    else
+
+                    @if(firstItem.O_PaymentType != "Walk-in") 
                     {
-                        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 16px; border-radius: 12px; text-align: center; font-weight: 600; margin-bottom: 24px;">
-                            <i class="bi bi-shop me-1"></i> ลูกค้ารับสินค้าที่หน้าร้าน
+                        <div>
+                             <label style="font-size: 0.9rem; font-weight: 700; color: #475569; display: block; margin-bottom: 10px;">อัปเดตสถานะล่าสุด</label>
+                            <select name="newStatus" class="select-modern">
+                                <option value="รอตรวจสอบ" selected="@(label == "รอตรวจสอบ" || label == "Pending")">รอตรวจสอบ</option>
+                                <option value="กำลังเตรียมของ" selected="@(label == "กำลังเตรียมของ" || label == "Preparing")">กำลังเตรียมของ</option>
+                                
+                                @if(firstItem.O_PaymentType == "Pickup") {
+                                    <option value="รับสินค้าแล้ว" selected="@(label == "รับสินค้าแล้ว" || label == "Received")">รับสินค้าแล้ว (มารับที่หน้าร้าน)</option>
+                                } else {
+                                    <option value="จัดส่งแล้ว" selected="@(label == "จัดส่งแล้ว" || label == "Shipped")">จัดส่งแล้ว (กำลังเดินทาง)</option>
+                                }
+                            </select>
                         </div>
                     }
-
-                    <div>
-                        <label style="font-size: 0.9rem; font-weight: 700; color: #475569; display: block; margin-bottom: 10px;">อัปเดตสถานะล่าสุด</label>
-                        <select name="newStatus" class="select-modern">
-                            <option value="รอตรวจสอบ" selected="@(label == "รอตรวจสอบ" || label == "Pending")">รอตรวจสอบ</option>
-                            <option value="กำลังเตรียมของ" selected="@(label == "กำลังเตรียมของ" || label == "Preparing")">กำลังเตรียมของ</option>
-                            
-                            @if(firstItem.O_PaymentType == "Pickup") {
-                                <option value="รับสินค้าแล้ว" selected="@(label == "รับสินค้าแล้ว" || label == "Received")">รับสินค้าแล้ว (มารับที่หน้าร้าน)</option>
-                            } else {
-                                <option value="จัดส่งแล้ว" selected="@(label == "จัดส่งแล้ว" || label == "Shipped")">จัดส่งแล้ว (กำลังเดินทาง)</option>
-                            }
-                        </select>
-                    </div>
                 </div>
 
                 <div class="dialog-footer">
-                    <button type="button" class="btn-cancel" onclick="document.getElementById('modal-@firstItem.O_OrderID').close()">ยกเลิก</button>
-                    <button type="submit" class="btn-confirm"><i class="bi bi-check2-circle me-2"></i>บันทึกสถานะ</button>
+                     <button type="button" class="btn-cancel" onclick="document.getElementById('modal-@firstItem.O_OrderID').close()">@(firstItem.O_PaymentType == "Walk-in" ? "ปิดหน้าต่าง" : "ยกเลิก")</button>
+                    
+                    @if(firstItem.O_PaymentType != "Walk-in") 
+                    {
+                        <button type="submit" class="btn-confirm"><i class="bi bi-check2-circle me-2"></i>บันทึกสถานะ</button>
+                    }
                 </div>
             </form>
         </dialog>
