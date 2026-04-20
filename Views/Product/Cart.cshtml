@@ -1,8 +1,9 @@
-@model List<SirinEngineering.ViewModels.CartItemViewModel>
 @{
     Layout = "~/Views/Shared/Layout/_CustomerLayout.cshtml";
     var promos = ViewBag.Promotions as List<SirinEngineering.Models.db.PromotionModel>;
 }
+
+@model List<SirinEngineering.ViewModels.CartItemViewModel>
 
 <style>
     :root { --sirin-blue: #003D7C; --bg-gray: #f8fafc; }
@@ -11,7 +12,6 @@
     
     .card-box { background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 25px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
 
-    /* รายการสินค้า */
     .cart-item { display: flex; align-items: center; padding: 20px 0; border-bottom: 1px solid #f1f5f9; }
     .cart-item:last-child { border-bottom: none; }
     .item-checkbox { width: 22px; height: 22px; cursor: pointer; accent-color: var(--sirin-blue); }
@@ -20,19 +20,16 @@
     .item-name { font-weight: 600; font-size: 1.1rem; color: #333; margin-bottom: 5px; }
     .item-price { color: var(--sirin-blue); font-weight: 700; font-size: 1.1rem; }
 
-    /* ปุ่ม QTY */
     .qty-wrapper { display: flex; align-items: center; background: #f1f5f9; border-radius: 8px; border: 1px solid #e2e8f0; height: 40px; }
     .qty-btn { background: transparent; border: none; color: #555; padding: 0 15px; font-weight: bold; font-size: 1.2rem; cursor: pointer; transition: 0.2s; }
     .qty-btn:hover { background: #e2e8f0; }
     .qty-input { border: none; background: transparent; text-align: center; width: 45px; font-weight: bold; font-size: 1rem; pointer-events: none; }
 
     .item-subtotal { font-weight: 700; width: 120px; text-align: right; font-size: 1.1rem; margin: 0 20px; }
-    
-    /* ปุ่มลบ */
+
     .btn-delete { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; color: #ef4444; cursor: pointer; }
     .btn-delete:hover { color: #ef4444; transform: scale(1.05); }
 
-    /* ปรับแต่งปุ่มดำเนินการสั่งซื้อ */
     .btn-checkout { background: var(--sirin-blue); color: white; border: none; width: 100%; padding: 16px; border-radius: 8px; font-weight: bold; font-size: 1.2rem; transition: 0.3s; margin-top: 20px; }
     .btn-checkout:hover:not(:disabled) { background: #002d5c; transform: translateY(-2px); box-shadow: 0 8px 15px rgba(0,61,124,0.2); }
     .btn-checkout:disabled { background: #cbd5e1; cursor: not-allowed; }
@@ -176,7 +173,7 @@
             let selectedCount = 0;
             let cartItemsData = []; 
 
-            // 1. กวาดข้อมูลจากตะกร้า
+            // กวาดข้อมูลจากตะกร้า
             document.querySelectorAll('.cart-item').forEach(item => {
                 const cb = item.querySelector('.item-checkbox');
                 const price = parseFloat(item.getAttribute('data-price'));
@@ -196,13 +193,13 @@
 
             if(selectAll) selectAll.checked = (selectedCount === checkboxes.length && checkboxes.length > 0);
 
-            // 2. คำนวณค่าส่ง
+            // คำนวณค่าส่ง
             let shipping = 0;
             if (shippingSelect && shippingSelect.value === "Delivery" && subtotal > 0) {
                 shipping = subtotal >= 2000 ? 0 : 150;
             }
 
-            // 3. คำนวณโปรโมชั่น
+            // คำนวณโปรโมชั่น
             let finalDiscount = 0;
             let isPromoValid = true;
             let warningMsg = "";
@@ -309,7 +306,7 @@
                 }
             }
 
-            // 4. สรุปยอดสุทธิ
+            // สรุปยอดสุทธิ
             let grandTotal = (subtotal + shipping) - finalDiscount;
             if (grandTotal < 0) grandTotal = 0;
 

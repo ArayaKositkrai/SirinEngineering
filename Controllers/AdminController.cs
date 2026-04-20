@@ -7,19 +7,19 @@ namespace SirinEngineering.Controllers
     {
         private readonly projectContext _db;
 
-        // Constructor เรียกใช้ฐานข้อมูล
         public AdminController(projectContext db)
         {
             _db = db;
         }
 
+        // Dashboard
         [HttpGet]
         public IActionResult Dashboard(DateTime? exactDate, int? month, int? year)
         {
             var orders = _db.TBL_Order.AsQueryable();
             var today = DateTime.Today;
 
-            //  1. ลอจิกการกรองตามที่คุณต้องการเป๊ะๆ
+            // 1. กรองออร์เดอร์ตามวันที่เลือก
             if (exactDate.HasValue)
             {
                 // ถ้าเลือกแบบเจาะจงวัน ให้ดูแค่วันนั้น
@@ -37,12 +37,12 @@ namespace SirinEngineering.Controllers
             }
             else if (month.HasValue)
             {
-                // ถ้าเลือกแค่เดือน ให้ดึงเดือนนั้นของ "ปีปัจจุบัน"
+                // ถ้าเลือกแค่เดือน ให้ดึงเดือนนั้นของปีปัจจุบัน
                 orders = orders.Where(o => o.O_OrderDate.Month == month.Value && o.O_OrderDate.Year == today.Year);
             }
             else
             {
-                // Default (เปิดมาตอนแรก): เป็นวันนี้
+                // Default เป็นวันนี้
                 orders = orders.Where(o => o.O_OrderDate.Date == today);
             }
 
@@ -92,6 +92,7 @@ namespace SirinEngineering.Controllers
             return View();
         }
 
+        // Staff Management
         [HttpGet]
         public IActionResult EditStaff(int id)
         {
@@ -120,6 +121,7 @@ namespace SirinEngineering.Controllers
             }
             return RedirectToAction("StaffManage");
         }
+        // สร้างพนักงานใหม่
         [HttpPost]
         public IActionResult CreateStaff(UserModel user)
         {
@@ -131,6 +133,7 @@ namespace SirinEngineering.Controllers
             }
             return RedirectToAction("StaffManage");
         }
+        // ลบพนักงาน
         public IActionResult DeleteStaff(int id)
         {
             var user = _db.TBL_User.Find(id);
@@ -141,7 +144,7 @@ namespace SirinEngineering.Controllers
             }
             return RedirectToAction("StaffManage");
         }
-
+        // สลับสถานะ Active/Inactive
         [HttpPost]
         public IActionResult ToggleUserStatus(int id)
         {
@@ -156,7 +159,7 @@ namespace SirinEngineering.Controllers
 
             return RedirectToAction("StaffManage");
         }
-
+        // ค้นหา
         public IActionResult StaffManage(string? search)
         {
             var query = _db.TBL_User
@@ -177,17 +180,18 @@ namespace SirinEngineering.Controllers
             return View(staffList);
         }
 
+        // Order Audit
         [HttpGet]
         public IActionResult AuditOrders(string searchKeyword)
         {
-            // ดึงออร์เดอร์ทั้งหมดและจัดกลุ่มตามเวลา (เพื่อให้เป็น 1 บิล)
+            // ดึงออร์เดอร์ทั้งหมดและจัดกลุ่มตามเวลาเพื่อให้เป็น 1 บิล
             var groupedOrders = _db.TBL_Order
                 .AsEnumerable()
                 .GroupBy(o => o.O_OrderDate)
                 .OrderByDescending(g => g.Key)
                 .ToList();
 
-            // ลอจิกค้นหา
+            // ค้นหา
             if (!string.IsNullOrEmpty(searchKeyword))
             {
                 var cleanSearch = searchKeyword.Replace("#ORD-", "").Replace("ORD-", "").Replace("#", "").Trim();

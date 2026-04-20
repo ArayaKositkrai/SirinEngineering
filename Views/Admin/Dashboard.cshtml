@@ -1,5 +1,5 @@
 @{
-    Layout = "~/Views/Shared/Layout/_AdminLayout.cshtml"; // เปลี่ยนตาม Layout ของ Admin ของคุณ
+    Layout = "~/Views/Shared/Layout/_AdminLayout.cshtml";
     ViewData["Title"] = "Dashboard";
     
     string currentFilter = ViewBag.Filter ?? "today";
@@ -56,9 +56,9 @@
         <select name="year" class="filter-select shadow-sm">
             <option value="">ทุกปี</option>
             @{
-                // สร้างตัวเลือกปีแบบไดนามิก (ถอยหลัง 3 ปี ไปจนถึงล่วงหน้า 2 ปี)
+                // สร้างตัวเลือกปีแบบไดนามิก (ถอยหลัง 2 ปี ไปจนถึงล่วงหน้า 2 ปี)
                 int currentYear = DateTime.Today.Year;
-                for (int y = currentYear - 3; y <= currentYear + 2; y++)
+                for (int y = currentYear - 2; y <= currentYear + 2; y++)
                 {
                     <option value="@y" selected="@(ViewBag.Year == y)">@y</option>
                 }

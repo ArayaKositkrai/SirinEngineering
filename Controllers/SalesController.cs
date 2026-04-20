@@ -10,14 +10,12 @@ namespace SirinEngineering.Controllers
     public class SalesController : Controller
     {
         private readonly projectContext _db;
-
-        // ดึง Database Context มาใช้งาน
         public SalesController(projectContext db)
         {
             _db = db;
         }
 
-        //  1. ฟังก์ชันเปิดหน้า POS (Shop) ที่หายไป เติมกลับมาให้แล้วครับ!
+        // POS
         [HttpGet]
         public IActionResult Shop()
         {
@@ -34,19 +32,19 @@ namespace SirinEngineering.Controllers
             return View(products);
         }
 
-        // --- คลาสตัวช่วยรับค่า (อัปเดตเพิ่มส่วนลดและของแถม) ---
+        // คลาสตัวช่วยรับค่าอัปเดตเพิ่มส่วนลดและของแถม
         public class POSCheckoutRequest {
             public List<POSCartItem> Items { get; set; }
             public string CustomerName { get; set; }
-            public decimal DiscountAmount { get; set; } //  รับค่าส่วนลด
-            public string GiftItemName { get; set; }    //  รับค่าของแถม
+            public decimal DiscountAmount { get; set; }
+            public string GiftItemName { get; set; }
         }
         public class POSCartItem {
             public int ProductId { get; set; }
             public int Qty { get; set; }
         }
 
-        // 2. ฟังก์ชันรับข้อมูลชำระเงิน
+        // รับข้อมูลชำระเงิน
         [HttpPost]
         public IActionResult POSCheckout([FromBody] POSCheckoutRequest request)
         {
@@ -66,7 +64,7 @@ namespace SirinEngineering.Controllers
                     // เช็คของแถม ถ้าไม่กรอกให้เป็น "-"
                     string giftName = string.IsNullOrWhiteSpace(request.GiftItemName) ? "-" : request.GiftItemName;
 
-                    // คำนวณยอดรวมก่อนลด เพื่อเอาไปหารเฉลี่ยส่วนลดให้สินค้าแต่ละชิ้น (ยอดในบิลจะได้ตรงเป๊ะ)
+                    // คำนวณยอดรวมก่อนลด เพื่อเอาไปหารเฉลี่ยส่วนลดให้สินค้าแต่ละชิ้น
                     decimal totalOrderValue = 0;
                     foreach(var i in request.Items) {
                         var p = _db.TBL_Product.Find(i.ProductId);
@@ -100,11 +98,8 @@ namespace SirinEngineering.Controllers
                                 O_TotalAmount = netTotal,             
                                 O_OrderDate = now, 
                                 O_CustomerName = cusName,
-                                
-                                //  แก้ไข 2 บรรทัดนี้สำหรับลูกค้าหน้าร้าน 
                                 O_PaymentType = "Walk-in", 
                                 O_Status = "ชำระแล้ว",
-                                
                                 O_SellerName = sellerName,
                                 O_GiftItemName = giftName             
                             };
@@ -132,33 +127,33 @@ namespace SirinEngineering.Controllers
             }
         }
 
-        //  ฟังก์ชันเช็คโค้ดส่วนลด (อิงจาก PromotionModel ของจริง)
+        // เช็คโปรโมชั่น
         [HttpGet]
         public IActionResult CheckPromotion(string code, decimal cartTotal)
         {
             if (string.IsNullOrEmpty(code)) 
                 return Json(new { success = false, message = "กรุณากรอกโค้ดส่วนลด" });
 
-            // 🔍 ค้นหาจากชื่อ PM_PromotionName (เพราะใน Model ไม่มีคอลัมน์ Code)
+            // ค้นหาจากชื่อ PM_PromotionName
             var promo = _db.TBL_Promotion.FirstOrDefault(p => p.PM_PromotionName == code && p.PM_IsActive);
 
             if (promo != null)
             {
                 DateTime now = DateTime.Now;
 
-                // 1. ตรวจสอบวันเวลา (หมดอายุหรือยัง?)
+                // ตรวจสอบวันหมดอายุ
                 if (now < promo.PM_StartDate || now > promo.PM_EndDate)
                 {
                     return Json(new { success = false, message = "โปรโมชั่นนี้หมดอายุ หรือยังไม่ถึงเวลาใช้งาน" });
                 }
 
-                // 2. ตรวจสอบยอดสั่งซื้อขั้นต่ำ
+                // ตรวจสอบยอดสั่งซื้อขั้นต่ำ
                 if (promo.PM_MinSpend.HasValue && cartTotal < promo.PM_MinSpend.Value)
                 {
                     return Json(new { success = false, message = $"ต้องมียอดซื้อขั้นต่ำ ฿{promo.PM_MinSpend.Value:N0}" });
                 }
 
-                // 3. คำนวณส่วนลดตามประเภทโปรโมชั่น (PM_PromoType)
+                // คำนวณส่วนลดตามประเภทโปรโมชั่น (PM_PromoType)
                 decimal finalDiscount = 0;
                 string typeLower = promo.PM_PromoType?.ToLower() ?? "";
 
@@ -182,18 +177,18 @@ namespace SirinEngineering.Controllers
             
             return Json(new { success = false, message = "โค้ดส่วนลดไม่ถูกต้อง" });
         }
-
+        // เช็คจำนวนสินค้าในสต๊อก
         public IActionResult StockCheck()
         {
             var products = _db.TBL_Product.Include(p => p.Category).OrderByDescending(p => p.PD_ProductID).ToList();
             return View(products);
         }
 
-        // 1. ฟังก์ชันเปิดหน้าจัดการคำสั่งซื้อ
+        // จัดการคำสั่งซื้อ
         [HttpGet]
         public IActionResult OrderManage()
         {
-            // ดึงออร์เดอร์ทั้งหมด เรียงจากใหม่ไปเก่า
+            // ดึงออร์เดอร์ทั้งหมด
             var orders = _db.TBL_Order.OrderByDescending(o => o.O_OrderDate).ToList();
             
             // ดึงข้อมูล User เผื่อเอาไปดึงที่อยู่จัดส่งโชว์ใน Modal
@@ -202,21 +197,21 @@ namespace SirinEngineering.Controllers
             return View(orders);
         }
 
-        // 2. ฟังก์ชันอัปเดตสถานะ (เมื่อ Staff กดบันทึกจาก Modal)
+        // อัปเดตสถานะเมื่อ Staff กดบันทึกจาก Modal
         [HttpPost]
         public IActionResult UpdateOrderStatus(List<int> orderIds, string newStatus)
         {
             if (orderIds != null && orderIds.Any())
             {
-                // ค้นหาสินค้าทุกชิ้นที่อยู่ใน Order เดียวกัน (อิงจาก ID ที่ส่งมา)
+                // ค้นหาสินค้าทุกชิ้นที่อยู่ใน Order เดียวกัน
                 var ordersToUpdate = _db.TBL_Order.Where(o => orderIds.Contains(o.O_OrderID)).ToList();
                 
                 foreach (var order in ordersToUpdate)
                 {
-                    order.O_Status = newStatus; // เปลี่ยนสถานะ
+                    order.O_Status = newStatus;
                 }
                 
-                _db.SaveChanges(); // เซฟลงฐานข้อมูล
+                _db.SaveChanges();
             }
 
             return RedirectToAction("OrderManage");

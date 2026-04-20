@@ -34,10 +34,6 @@ build_property.EnableCodeStyleSeverity =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxMb2dpbi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/USER/Desktop/Project402/SirinEngineering/Views/Account/Register.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxSZWdpc3Rlci5jc2h0bWw=
-build_metadata.AdditionalFiles.CssScope = 
-
 [C:/Users/USER/Desktop/Project402/SirinEngineering/Views/Admin/AuditOrders.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cQXVkaXRPcmRlcnMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
@@ -78,10 +74,6 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHJvZHVjdFxDaGVja291dC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/USER/Desktop/Project402/SirinEngineering/Views/Product/Detail.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHJvZHVjdFxEZXRhaWwuY3NodG1s
-build_metadata.AdditionalFiles.CssScope = 
-
 [C:/Users/USER/Desktop/Project402/SirinEngineering/Views/Product/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHJvZHVjdFxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
@@ -92,10 +84,6 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Users/USER/Desktop/Project402/SirinEngineering/Views/Product/ProductList.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHJvZHVjdFxQcm9kdWN0TGlzdC5jc2h0bWw=
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Users/USER/Desktop/Project402/SirinEngineering/Views/Sales/Checkout.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2FsZXNcQ2hlY2tvdXQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/USER/Desktop/Project402/SirinEngineering/Views/Sales/OrderManage.cshtml]
@@ -120,10 +108,6 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Users/USER/Desktop/Project402/SirinEngineering/Views/Shared/Layout/_CustomerLayout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXExheW91dFxfQ3VzdG9tZXJMYXlvdXQuY3NodG1s
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Users/USER/Desktop/Project402/SirinEngineering/Views/Shared/Layout/_LoginLayout.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXExheW91dFxfTG9naW5MYXlvdXQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/USER/Desktop/Project402/SirinEngineering/Views/Shared/Layout/_UserLayout.cshtml]

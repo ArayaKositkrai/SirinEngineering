@@ -1,10 +1,11 @@
-@model List<SirinEngineering.Models.db.ProductModel>
 @{
     Layout = "~/Views/Shared/Layout/_UserLayout.cshtml"; 
     ViewData["Title"] = "POS - Point of Sale";
     var categories = ViewBag.Categories as List<string> ?? new List<string>();
     var promos = ViewBag.Promotions as List<SirinEngineering.Models.db.PromotionModel>;
 }
+
+@model List<SirinEngineering.Models.db.ProductModel>
 
 <style>
     :root { --sirin-blue: #003D7C; --bg-light: #f8fafc; --border-color: #e2e8f0; }
@@ -344,10 +345,10 @@
         .then(res => res.json())
         .then(data => {
             if(data.success) {
-                alert(`✅ การชำระเงินเสร็จสมบูรณ์! (เลขที่บิล: #ORD-${data.orderId})`);
+                alert(`การชำระเงินเสร็จสมบูรณ์! (เลขที่บิล: #ORD-${data.orderId})`);
                 window.location.reload(); 
             } else {
-                alert('❌ ขัดข้อง: ' + data.message);
+                alert('ขัดข้อง: ' + data.message);
                 btn.disabled = false;
                 btn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> รับเงินแล้ว';
             }

@@ -34,21 +34,22 @@ namespace SirinEngineering.Controllers
 
             if (user != null)
             {
+                // RoleID เป็น RoleName
                 string roleName = user.U_RoleID == 1 ? "Admin" : (user.U_RoleID == 2 ? "Staff" : "Customer");
 
                 var claims = new List<Claim>
                 {
-                    new Claim(ClaimTypes.Name, user.U_Username), // เก็บชื่อ Username
-                    new Claim(ClaimTypes.Role, roleName)         // เก็บสิทธิ์ (Admin, Staff, Customer)
+                    new Claim(ClaimTypes.Name, user.U_Username),
+                    new Claim(ClaimTypes.Role, roleName)
                 };
                 var identity = new ClaimsIdentity(claims, "MyCookieAuth");
                 await HttpContext.SignInAsync("MyCookieAuth", new ClaimsPrincipal(identity));
 
-                // --- แยกเส้นทาง ---
+                // แยกไปตาม RoleID
                 switch (user.U_RoleID)
                 {
                     case 1: return RedirectToAction("Dashboard", "Admin");
-                    case 2: return RedirectToAction("StockCheck", "Sales");
+                    case 2: return RedirectToAction("Shop", "Sales");
                     case 3: return RedirectToAction("Index", "Product");
                     default: return RedirectToAction("Login", "Account");
                 }
@@ -84,7 +85,7 @@ namespace SirinEngineering.Controllers
                 _db.TBL_User.Add(newUser);
                 _db.SaveChanges();
 
-                // สมัครเสร็จแล้วให้ Login อัตโนมัติเลย
+                // สมัครเสร็จแล้วเข้าสู่ระบบอัตโนมัติ
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimTypes.Name, newUser.U_Username),
@@ -100,7 +101,6 @@ namespace SirinEngineering.Controllers
             return View("Login", model);
         }
 
-        // --- เพิ่มฟังก์ชัน Logout ---
         public async Task<IActionResult> Logout()
         {
             HttpContext.Session.Clear();

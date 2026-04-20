@@ -1,4 +1,3 @@
-@model List<IGrouping<DateTime, SirinEngineering.Models.db.OrderModel>>
 @{
     Layout = "~/Views/Shared/Layout/_AdminLayout.cshtml";
     ViewData["Title"] = "Audit / Order History";
@@ -17,6 +16,8 @@
     int totalPages = totalItems > 0 ? (int)Math.Ceiling(totalItems / (double)pageSize) : 1;
     var pagedOrders = Model?.Skip((currentPage - 1) * pageSize).Take(pageSize).ToList() ?? new();
 }
+
+@model List<IGrouping<DateTime, SirinEngineering.Models.db.OrderModel>>
 
 <style>
     :root { 
@@ -63,7 +64,6 @@
     .invoice-table td { padding: 12px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
     .invoice-total { display: flex; justify-content: space-between; font-weight: 800; font-size: 1.1rem; padding-top: 15px; border-top: 2px solid var(--text-dark); margin-top: 10px; }
     .btn-close-circle { background: #f1f5f9; border: none; border-radius: 50%; width: 36px; height: 36px; position: absolute; top: 15px; right: 15px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; color: #64748b; }
-    @* .btn-close-circle:hover { background: #e2e8f0; transform: rotate(90deg); color: #0f172a; } *@
 </style>
 
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
@@ -113,7 +113,7 @@
                         string sellerName = !string.IsNullOrEmpty(firstItem.O_SellerName) ? firstItem.O_SellerName : "สั่งซื้อออนไลน์"; 
                         string sellerBadge = !string.IsNullOrEmpty(firstItem.O_SellerName) ? "bg-soft-user" : "bg-soft-secondary";
 
-                        //  จัดการสถานะรูปแบบการซื้อ (เพิ่ม Walk-in) 
+                        //  จัดการสถานะรูปแบบการซื้อ
                         string ptBadge = "bg-soft-secondary";
                         string ptIcon = "bi-truck";
                         string ptText = "จัดส่ง";
@@ -205,17 +205,17 @@
 
                 <div class="row mb-4 small">
                     <div class="col-6">
-                        <div class="text-muted">ลูกค้า:</div>
+                        <div class="text-muted">ลูกค้า :</div>
                         <div class="fw-bold fs-6" style="color: var(--text-dark);">@firstItem.O_CustomerName</div>
                         @if(!string.IsNullOrEmpty(firstItem.O_SellerName)) {
-                            <div class="text-muted mt-1" style="font-size: 0.8rem;">ผู้ทำรายการ: @firstItem.O_SellerName</div>
+                            <div class="text-muted mt-1" style="font-size: 0.8rem;">ผู้ทำรายการ : @firstItem.O_SellerName</div>
                         }
                     </div>
                     <div class="col-6 text-end">
-                        <div class="text-muted">วันที่สั่งซื้อ:</div>
+                        <div class="text-muted">วันที่สั่งซื้อ :</div>
                         <div class="fw-bold" style="color: var(--text-dark);">@firstItem.O_OrderDate.ToString("dd MMM yyyy, HH:mm")</div>
                         
-                        <div class="text-muted mt-1">ประเภท: 
+                        <div class="text-muted mt-1">ประเภท : 
                             @(firstItem.O_PaymentType == "Walk-in" ? "Walk-in (ซื้อหน้าร้าน)" : (firstItem.O_PaymentType == "Pickup" ? "มารับที่หน้าร้าน" : "จัดส่งตามที่อยู่"))
                         </div>
                     </div>
@@ -237,7 +237,6 @@
                                 <td class="text-center text-muted">@item.O_Quantity</td>
                                 <td class="text-end" style="color: var(--text-dark);">
                                     @{
-                                        // ป้องกันออร์เดอร์เก่าที่อาจจะไม่มี SubTotal
                                         decimal rowPrice = item.O_SubTotal > 0 ? item.O_SubTotal : item.O_TotalAmount;
                                     }
                                     ฿@rowPrice.ToString("N0")

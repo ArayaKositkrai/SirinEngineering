@@ -17,27 +17,27 @@ public class ProductController : Controller
     {
         _db = db;
     }
-
+    // หน้าแรก
     public IActionResult Index()
     {
         ViewBag.Categories = _db.TBL_Category.ToList();
-        var featuredProducts = _db.TBL_Product.Take(20).ToList(); // ดึงมา 8 ชิ้นเพื่อให้เรียงได้ 2 แถว
+        var featuredProducts = _db.TBL_Product.Take(20).ToList();
         return View(featuredProducts);
     }
-
+    // หน้ารายการสินค้า
     public IActionResult ProductList(int? categoryId, string searchKeyword)
     {
         ViewBag.Categories = _db.TBL_Category.ToList();
         var products = _db.TBL_Product.AsQueryable();
 
-        // 1. กรองตามคำค้นหา (ชื่อสินค้า หรือ ยี่ห้อ)
+        // กรองตามคำค้นหา
         if (!string.IsNullOrEmpty(searchKeyword))
         {
             products = products.Where(p => p.PD_ProductName.Contains(searchKeyword) || p.PD_Brand.Contains(searchKeyword));
-            ViewBag.SearchKeyword = searchKeyword; // ส่งคำกลับไปโชว์ในช่องค้นหา
+            ViewBag.SearchKeyword = searchKeyword;
         }
 
-        // 2. กรองตามหมวดหมู่ (ทำร่วมกับการค้นหาได้)
+        // กรองตามหมวดหมู่
         if (categoryId.HasValue && categoryId > 0)
         {
             products = products.Where(p => p.PD_CategoryID == categoryId);
@@ -46,22 +46,22 @@ public class ProductController : Controller
 
         return View(products.ToList());
     }
-
+    // หน้าตะกร้าสินค้า
     [HttpGet]
     public IActionResult Cart()
     {
         var cart = GetCartFromSession();
 
-        // ดึงโปรโมชั่นที่ยัง Active อยู่ และอยู่ในช่วงเวลาที่กำหนด
+        // ดึงโปรโมชั่นที่ Active อยู่ และอยู่ในช่วงเวลาที่กำหนด
         ViewBag.Promotions = _db.TBL_Promotion
                            .Where(p => p.PM_IsActive == true && p.PM_EndDate >= DateTime.Now)
                            .ToList();
 
-        // ดึงค่าการจัดส่งและโปรโมชั่นที่เคยเลือกไว้ (ถ้ามี)
+        // ดึงค่าการจัดส่งและโปรโมชั่นที่เคยเลือกไว้
         string shippingMethod = HttpContext.Session.GetString("ShippingMethod") ?? "Delivery";
         string promoCode = HttpContext.Session.GetString("PromoCode") ?? "";
 
-        // --- การคำนวณยอดเงิน (ทำด้วย C# ล้วนๆ) ---
+        // คำนวณยอดเงิน
         decimal subTotal = 0;
         foreach (var item in cart.Where(c => c.IsSelected))
         {
@@ -88,13 +88,13 @@ public class ProductController : Controller
 
         return View(cart);
     }
-
+    // อัปเดตตะกร้า (จำนวน, เลือก/ไม่เลือกสินค้า, ค่าจัดส่ง, รหัสโปรโมชั่น)
     [HttpPost]
     public IActionResult UpdateCart(List<int> ProductIds, List<int> Quantities, List<int> SelectedProducts, string ShippingMethod, string PromoCode, string ActionType)
     {
         var cart = GetCartFromSession();
 
-        // 1. อัปเดตจำนวน และสถานะการเลือก (ติ๊กถูก)
+        // อัปเดตจำนวนและสถานะการเลือก(ติ๊กถูก)
         for (int i = 0; i < cart.Count; i++)
         {
             // จับคู่ ID สินค้า เพื่ออัปเดตจำนวนให้ถูกต้อง
@@ -107,40 +107,39 @@ public class ProductController : Controller
             }
         }
 
-        // 2. บันทึกตะกร้า, ค่าจัดส่ง และโปรโมชั่น ลง Session
+        // บันทึกตะกร้า, ค่าจัดส่ง และโปรโมชั่น ลง Session
         SaveCartToSession(cart);
         HttpContext.Session.SetString("ShippingMethod", ShippingMethod ?? "Delivery");
         HttpContext.Session.SetString("PromoCode", PromoCode ?? "");
 
-        // 3. เช็คว่าลูกค้ากดปุ่มไหนมา ("Update" หรือ "Checkout")
+        // เช็คว่าลูกค้ากดปุ่มไหนมา
         if (ActionType == "Checkout")
         {
-            // ถ้ากดสั่งซื้อ ให้ดึงเฉพาะของที่เลือกลง Session ใหม่ แล้วพาไปหน้า Checkout
+            // ถ้ากดสั่งซื้อให้ดึงเฉพาะของที่เลือกลง Session ใหม่ แล้วพาไปหน้า Checkout
             var checkoutItems = cart.Where(c => c.IsSelected).ToList();
             HttpContext.Session.SetString("CheckoutItems", JsonConvert.SerializeObject(checkoutItems));
 
             return RedirectToAction("Checkout");
         }
 
-        // ถ้ากด "อัปเดตตะกร้า" ให้กลับไปหน้า Cart เพื่อโหลดตัวเลขใหม่
+        // ถ้ากดอัปเดตตะกร้าให้กลับไปหน้า Cart เพื่อโหลดตัวเลขใหม่
         return RedirectToAction("Cart");
     }
-
+    // เพิ่มสินค้าในตะกร้า
     [HttpPost]
     public IActionResult AddToCart(int productId, int qty)
     {
-        // --- จุดที่ 1: เช็คว่า Login หรือยัง ---
+        // เช็คว่า Login รึยัง ถ้ายังให้ไป Login ก่อน
         if (!User.Identity.IsAuthenticated)
         {
-            // ถ้ายังไม่ Login ให้เด้งไปหน้า Login ของ AccountController
             return RedirectToAction("Login", "Account");
         }
 
-        // --- จุดที่ 2: ดึงข้อมูลสินค้าจาก DB ---
+        // ดึงข้อมูลสินค้าจาก DB
         var product = _db.TBL_Product.FirstOrDefault(p => p.PD_ProductID == productId);
         if (product == null) return NotFound();
 
-        // --- จุดที่ 3: จัดการของในตะกร้า (Session) ---
+        // จัดการของในตะกร้า ดึงจาก Session
         var cart = GetCartFromSession();
         var item = cart.FirstOrDefault(x => x.ProductId == productId);
 
@@ -166,7 +165,7 @@ public class ProductController : Controller
         return RedirectToAction("Cart");
     }
 
-    // 3. ฟังก์ชันลบสินค้า
+    // ฟังก์ชันลบสินค้า
     public IActionResult RemoveFromCart(int id)
     {
         var cart = GetCartFromSession();
@@ -175,7 +174,7 @@ public class ProductController : Controller
         return RedirectToAction("Cart");
     }
 
-    // --- Helper Methods สำหรับจัดการ Session ---
+    // จัดการ Session
     private List<CartItemViewModel> GetCartFromSession()
     {
         var sessionData = HttpContext.Session.GetString("Cart");
@@ -186,7 +185,7 @@ public class ProductController : Controller
     {
         HttpContext.Session.SetString("Cart", JsonConvert.SerializeObject(cart));
     }
-
+    // หน้าสั่งซื้อของฉัน
     [HttpGet]
     public IActionResult MyOrders()
     {
@@ -203,7 +202,7 @@ public class ProductController : Controller
         return View(myOrders);
     }
 
-    // 1. รับค่าจากตะกร้าสินค้า (เตรียมข้อมูลส่งไปหน้า Checkout)
+    // รับค่าจากตะกร้าสินค้า เตรียมข้อมูลส่งไปหน้า Checkout
     [HttpPost]
     public IActionResult ProceedToCheckout(List<int> SelectedProducts, List<int> Quantities, List<int> ProductIds, string ShippingMethod)
     {
@@ -225,15 +224,15 @@ public class ProductController : Controller
             }
         }
 
-        //  เก็บรายการสินค้าและรูปแบบการส่ง (Pickup/Delivery) ลง Session
+        //  เก็บรายการสินค้าและรูปแบบการส่ง Pickup/Delivery ลง Session
         HttpContext.Session.SetString("CheckoutItems", JsonConvert.SerializeObject(checkoutItems));
         HttpContext.Session.SetString("ShippingMethod", ShippingMethod ?? "Delivery");
 
-        //  ไม่ต้องบันทึก DB ตรงนี้แล้ว! บังคับไปหน้า Checkout เสมอ
+        // บังคับไปหน้า Checkout
         return RedirectToAction("Checkout");
     }
 
-    // 2. หน้า Checkout
+    // หน้า Checkout
     [HttpGet]
     public IActionResult Checkout()
     {
@@ -246,7 +245,7 @@ public class ProductController : Controller
         return View(user);
     }
 
-    // 3. ยืนยันจากหน้า Checkout -> บันทึก DB -> หักสต๊อก -> ไป MyOrders
+    // ยืนยันจากหน้า Checkout > บันทึก DB > หักสต๊อก > ไป MyOrders
     [HttpPost]
     public IActionResult ConfirmOrder(string U_Address)
     {
@@ -261,7 +260,7 @@ public class ProductController : Controller
 
         var checkoutItems = JsonConvert.DeserializeObject<List<CartItemViewModel>>(checkoutJson);
 
-        //  อัปเดตที่อยู่เฉพาะตอนเลือก "จัดส่ง"
+        //  อัปเดตที่อยู่เฉพาะตอนเลือกจัดส่ง
         if (user != null && shippingMethod == "Delivery")
         {
             user.U_Address = U_Address;
@@ -282,7 +281,7 @@ public class ProductController : Controller
                 O_Price = item.Price,
                 O_SubTotal = item.Price * item.Quantity,
                 O_TotalAmount = item.Price * item.Quantity,
-                O_PaymentType = shippingMethod, //  ใช้ค่าจาก Session (Pickup หรือ Delivery)
+                O_PaymentType = shippingMethod, // ใช้ค่าจาก Session (Pickup หรือ Delivery)
                 O_UserID = user.U_UserID,
                 O_Status = "รอตรวจสอบ",
                 O_GiftItemName = "" 

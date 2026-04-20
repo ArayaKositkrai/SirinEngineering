@@ -1,13 +1,14 @@
-@model SirinEngineering.Models.db.UserModel
 @{
     Layout = "~/Views/Shared/Layout/_CustomerLayout.cshtml";
     var checkoutItems = ViewBag.CheckoutItems as List<SirinEngineering.ViewModels.CartItemViewModel>;
     var shippingMethod = Context.Session.GetString("ShippingMethod");
-    // ดักจับป้องกันหน้าพัง ถ้าหาตะกร้าไม่เจอให้ค่าเป็น 0
+    // ถ้าหาตะกร้าไม่เจอให้ค่าเป็น 0
     decimal subTotal = checkoutItems?.Sum(x => x.Price * x.Quantity) ?? 0;
     decimal shippingFee = subTotal >= 2000 ? 0 : 150;
     decimal grandTotal = subTotal + shippingFee; 
 }
+
+@model SirinEngineering.Models.db.UserModel
 
 <style>
     :root { --sirin-blue: #003D7C; }
@@ -65,7 +66,7 @@
                             <div class="mb-0">
                                 <label class="fw-bold text-dark mb-1">กรอกที่อยู่จัดส่ง <span class="text-danger">*</span></label>
                                 <textarea name="U_Address" class="form-control p-3" rows="5" required style="border-radius:12px; border: 1px solid #cbd5e1;">@Model.U_Address</textarea>
-                                <small class="text-primary fw-bold mt-2 d-block">* ระบบจะจำที่อยู่นี้ไว้ใช้ในครั้งถัดไป</small>
+                                <small class="text-primary fw-bold mt-2 d-block">*ระบบจะจำที่อยู่นี้ไว้ใช้ในครั้งถัดไป</small>
                             </div>
                         }
                     </div>
@@ -73,12 +74,12 @@
 
                 <div class="col-lg-5">
                     <div class="card-box h-100">
-                        <h4 class="fw-bold border-bottom pb-3 mb-4">ยอดโอนสุทธิ: <span class="text-primary float-end">฿@grandTotal.ToString("N0")</span></h4>
+                        <h4 class="fw-bold border-bottom pb-3 mb-4">ยอดโอนสุทธิ : <span class="text-primary float-end">฿@grandTotal.ToString("N0")</span></h4>
                         <div class="qr-wrapper d-flex flex-column align-items-center justify-content-center">
                             <p class="fw-bold text-muted mb-3">สแกน QR เพื่อโอนเงินผ่านพร้อมเพย์</p>
                             <img src="https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg" class="qr-img mb-3" alt="QR Code">
                             <div class="badge bg-white text-dark border p-2 px-3 fs-6" style="border-radius: 50px;">
-                                <span class="text-muted">เลขบัญชี:</span> 012-345-6789
+                                <span class="text-muted">เลขบัญชี :</span> 012-345-6789
                             </div>
                             <p class="mt-2 mb-0 fw-bold small text-muted">บริษัท ศิรินทร์ เอ็นจิเนียริ่ง จำกัด</p>
                         </div>
@@ -91,7 +92,7 @@
                     <button type="submit" class="btn-confirm">
                         ยืนยันการโอนเงินและสั่งซื้อสินค้า <i class="bi bi-check-circle-fill ms-2"></i>
                     </button>
-                    <p class="text-center mt-3 text-muted fw-bold small">** เมื่อกดปุ่มแล้ว ระบบจะนำคุณไปยังหน้า "ประวัติการสั่งซื้อ" (MyOrders) ทันที</p>
+                    <p class="text-center mt-3 text-muted fw-bold small">**เมื่อกดปุ่มแล้วระบบจะนำคุณไปยังหน้า"ประวัติการสั่งซื้อ"(MyOrders)ทันที</p>
                 </div>
             </div>
         </form>

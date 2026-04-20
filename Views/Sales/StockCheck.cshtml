@@ -16,7 +16,7 @@
     string categoryFilter = Context.Request.Query["categoryFilter"].ToString();
     string stockFilter = Context.Request.Query["stockFilter"].ToString(); // รับค่าสถานะสต๊อก
 
-    // ลอจิกการฟิลเตอร์
+    // การฟิลเตอร์
     if (!string.IsNullOrEmpty(searchKeyword))
     {
         allProducts = allProducts.Where(p => 
@@ -31,7 +31,7 @@
         allProducts = allProducts.Where(p => p.Category?.C_CategoryName == categoryFilter).ToList();
     }
 
-    //  ลอจิกการกรองตามสถานะสต๊อก 
+    //  การกรองตามสถานะสต๊อก 
     if (!string.IsNullOrEmpty(stockFilter) && stockFilter != "all")
     {
         allProducts = allProducts.Where(p => {

@@ -1,14 +1,15 @@
-@model List<SirinEngineering.Models.db.OrderModel>
 @{
     Layout = "~/Views/Shared/Layout/_CustomerLayout.cshtml";
     ViewData["Title"] = "My Orders";
 
-    // จัดกลุ่ม (Group) สินค้าที่สั่งในเวลาเดียวกันให้รวมเป็น 1 Order
+    // จัดกลุ่มสินค้าที่สั่งในเวลาเดียวกันให้รวมเป็น 1 Order
     var groupedOrders = Model?
         .GroupBy(o => o.O_OrderDate)
         .OrderByDescending(g => g.First().O_OrderDate)
         .ToList() ?? new();
 }
+
+@model List<SirinEngineering.Models.db.OrderModel>
 
 <style>
     .content-wrapper { 
@@ -68,25 +69,25 @@
         transition: 0.3s
     }
     
-    /* 🟡 รอตรวจสอบ (Amber / เหลืองส้มทอง) */
+    /* รอตรวจสอบ */
     .pill-checking { 
         background-color: #FFFBEB; 
         color: #B45309; 
     } 
     
-    /* 🟣 กำลังเตรียมของ (Indigo / ม่วงอมน้ำเงิน) */
+    /* กำลังเตรียมของ */
     .pill-preparing { 
         background-color: #EEF2FF; 
         color: #4338CA; 
     } 
     
-    /* 🔵 จัดส่งแล้ว (Sky Blue / ฟ้าใส) */
+    /* จัดส่งแล้ว */
     .pill-shipped { 
         background-color: #F0F9FF; 
         color: #0369A1; 
     }   
     
-    /* 🟢 รับสินค้าแล้ว / สำเร็จ (Emerald / เขียวสดชื่น) */
+    /* รับสินค้าแล้ว */
     .pill-success { 
         background-color: #ECFDF5; 
         color: #047857; 
