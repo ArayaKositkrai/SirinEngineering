@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\USER\\Desktop\\Project402\\SirinEngineering\\SirinEngineering.csproj": {}
+    "D:\\01 SPU\\2-2568\\CSI403\\SirinEngineering\\SirinEngineering.csproj": {}
   },
   "projects": {
-    "C:\\Users\\USER\\Desktop\\Project402\\SirinEngineering\\SirinEngineering.csproj": {
+    "D:\\01 SPU\\2-2568\\CSI403\\SirinEngineering\\SirinEngineering.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\USER\\Desktop\\Project402\\SirinEngineering\\SirinEngineering.csproj",
+        "projectUniqueName": "D:\\01 SPU\\2-2568\\CSI403\\SirinEngineering\\SirinEngineering.csproj",
         "projectName": "SirinEngineering",
-        "projectPath": "C:\\Users\\USER\\Desktop\\Project402\\SirinEngineering\\SirinEngineering.csproj",
+        "projectPath": "D:\\01 SPU\\2-2568\\CSI403\\SirinEngineering\\SirinEngineering.csproj",
         "packagesPath": "C:\\Users\\USER\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\USER\\Desktop\\Project402\\SirinEngineering\\obj\\",
+        "outputPath": "D:\\01 SPU\\2-2568\\CSI403\\SirinEngineering\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\USER\\AppData\\Roaming\\NuGet\\NuGet.Config"

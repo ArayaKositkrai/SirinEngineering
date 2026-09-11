@@ -19,113 +19,113 @@ build_property.TargetFrameworkIdentifier = .NETCoreApp
 build_property.TargetFrameworkVersion = v10.0
 build_property.RootNamespace = SirinEngineering
 build_property.RootNamespace = SirinEngineering
-build_property.ProjectDir = C:\Users\USER\Desktop\Project402\SirinEngineering\
+build_property.ProjectDir = D:\01 SPU\2-2568\CSI403\SirinEngineering\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.RazorLangVersion = 9.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = C:\Users\USER\Desktop\Project402\SirinEngineering
+build_property.MSBuildProjectDirectory = D:\01 SPU\2-2568\CSI403\SirinEngineering
 build_property._RazorSourceGeneratorDebug = 
 build_property.EffectiveAnalysisLevelStyle = 10.0
 build_property.EnableCodeStyleSeverity = 
 
-[C:/Users/USER/Desktop/Project402/SirinEngineering/Views/Account/Login.cshtml]
+[D:/01 SPU/2-2568/CSI403/SirinEngineering/Views/Account/Login.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxMb2dpbi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/USER/Desktop/Project402/SirinEngineering/Views/Admin/AuditOrders.cshtml]
+[D:/01 SPU/2-2568/CSI403/SirinEngineering/Views/Admin/AuditOrders.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cQXVkaXRPcmRlcnMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/USER/Desktop/Project402/SirinEngineering/Views/Admin/Dashboard.cshtml]
+[D:/01 SPU/2-2568/CSI403/SirinEngineering/Views/Admin/Dashboard.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cRGFzaGJvYXJkLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/USER/Desktop/Project402/SirinEngineering/Views/Admin/StaffManage.cshtml]
+[D:/01 SPU/2-2568/CSI403/SirinEngineering/Views/Admin/StaffManage.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cU3RhZmZNYW5hZ2UuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/USER/Desktop/Project402/SirinEngineering/Views/Home/Index.cshtml]
+[D:/01 SPU/2-2568/CSI403/SirinEngineering/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/USER/Desktop/Project402/SirinEngineering/Views/Home/Privacy.cshtml]
+[D:/01 SPU/2-2568/CSI403/SirinEngineering/Views/Home/Privacy.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/USER/Desktop/Project402/SirinEngineering/Views/Inventory/ManageCategory.cshtml]
+[D:/01 SPU/2-2568/CSI403/SirinEngineering/Views/Inventory/ManageCategory.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSW52ZW50b3J5XE1hbmFnZUNhdGVnb3J5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/USER/Desktop/Project402/SirinEngineering/Views/Inventory/ManageProduct.cshtml]
+[D:/01 SPU/2-2568/CSI403/SirinEngineering/Views/Inventory/ManageProduct.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSW52ZW50b3J5XE1hbmFnZVByb2R1Y3QuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/USER/Desktop/Project402/SirinEngineering/Views/Inventory/ManagePromotion.cshtml]
+[D:/01 SPU/2-2568/CSI403/SirinEngineering/Views/Inventory/ManagePromotion.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSW52ZW50b3J5XE1hbmFnZVByb21vdGlvbi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/USER/Desktop/Project402/SirinEngineering/Views/Product/Cart.cshtml]
+[D:/01 SPU/2-2568/CSI403/SirinEngineering/Views/Product/Cart.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHJvZHVjdFxDYXJ0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/USER/Desktop/Project402/SirinEngineering/Views/Product/Checkout.cshtml]
+[D:/01 SPU/2-2568/CSI403/SirinEngineering/Views/Product/Checkout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHJvZHVjdFxDaGVja291dC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/USER/Desktop/Project402/SirinEngineering/Views/Product/Index.cshtml]
+[D:/01 SPU/2-2568/CSI403/SirinEngineering/Views/Product/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHJvZHVjdFxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/USER/Desktop/Project402/SirinEngineering/Views/Product/MyOrders.cshtml]
+[D:/01 SPU/2-2568/CSI403/SirinEngineering/Views/Product/MyOrders.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHJvZHVjdFxNeU9yZGVycy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/USER/Desktop/Project402/SirinEngineering/Views/Product/ProductList.cshtml]
+[D:/01 SPU/2-2568/CSI403/SirinEngineering/Views/Product/ProductList.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHJvZHVjdFxQcm9kdWN0TGlzdC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/USER/Desktop/Project402/SirinEngineering/Views/Sales/OrderManage.cshtml]
+[D:/01 SPU/2-2568/CSI403/SirinEngineering/Views/Sales/OrderManage.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2FsZXNcT3JkZXJNYW5hZ2UuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/USER/Desktop/Project402/SirinEngineering/Views/Sales/Shop.cshtml]
+[D:/01 SPU/2-2568/CSI403/SirinEngineering/Views/Sales/Shop.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2FsZXNcU2hvcC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/USER/Desktop/Project402/SirinEngineering/Views/Sales/StockCheck.cshtml]
+[D:/01 SPU/2-2568/CSI403/SirinEngineering/Views/Sales/StockCheck.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2FsZXNcU3RvY2tDaGVjay5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/USER/Desktop/Project402/SirinEngineering/Views/Shared/Error.cshtml]
+[D:/01 SPU/2-2568/CSI403/SirinEngineering/Views/Shared/Error.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXEVycm9yLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/USER/Desktop/Project402/SirinEngineering/Views/Shared/Layout/_AdminLayout.cshtml]
+[D:/01 SPU/2-2568/CSI403/SirinEngineering/Views/Shared/Layout/_AdminLayout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXExheW91dFxfQWRtaW5MYXlvdXQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/USER/Desktop/Project402/SirinEngineering/Views/Shared/Layout/_CustomerLayout.cshtml]
+[D:/01 SPU/2-2568/CSI403/SirinEngineering/Views/Shared/Layout/_CustomerLayout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXExheW91dFxfQ3VzdG9tZXJMYXlvdXQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/USER/Desktop/Project402/SirinEngineering/Views/Shared/Layout/_UserLayout.cshtml]
+[D:/01 SPU/2-2568/CSI403/SirinEngineering/Views/Shared/Layout/_UserLayout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXExheW91dFxfVXNlckxheW91dC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/USER/Desktop/Project402/SirinEngineering/Views/Shared/_ValidationScriptsPartial.cshtml]
+[D:/01 SPU/2-2568/CSI403/SirinEngineering/Views/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/USER/Desktop/Project402/SirinEngineering/Views/_ViewImports.cshtml]
+[D:/01 SPU/2-2568/CSI403/SirinEngineering/Views/_ViewImports.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdJbXBvcnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/USER/Desktop/Project402/SirinEngineering/Views/_ViewStart.cshtml]
+[D:/01 SPU/2-2568/CSI403/SirinEngineering/Views/_ViewStart.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdTdGFydC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/USER/Desktop/Project402/SirinEngineering/Views/Shared/_Layout.cshtml]
+[D:/01 SPU/2-2568/CSI403/SirinEngineering/Views/Shared/_Layout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9MYXlvdXQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = b-uvmv34enh5
